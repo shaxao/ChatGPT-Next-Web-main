@@ -34,6 +34,13 @@ import { Prompt, SearchService, usePromptStore } from "../store/prompt";
 import { ErrorBoundary } from "./error";
 import { InputRange } from "./input-range";
 import { useNavigate } from "react-router-dom";
+import {
+  requestHealth,
+  requestModelsList,
+  requestVoiceModelsList,
+  requestVideoModelsList,
+} from "../requests";
+import { showToast } from "../components/ui-lib";
 
 function UserPromptModal(props: { onClose?: () => void }) {
   const promptStore = usePromptStore();
@@ -195,6 +202,98 @@ export function Settings() {
   const remoteId = updateStore.remoteVersion;
   const hasNewVersion = currentVersion !== remoteId;
 
+  const accessStore = useAccessStore();
+  const enabledAccessControl = useMemo(
+    () => accessStore.enabledAccessControl(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const [checkingHealth, setCheckingHealth] = useState(false);
+  const [health, setHealth] = useState<{
+    ok: boolean;
+    status?: number;
+    message?: string;
+  } | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  async function fetchModels() {
+    setLoadingModels(true);
+    try {
+      const list = await requestModelsList();
+      accessStore.setModels(list, accessStore.endpoint);
+      if (!list || list.length === 0) {
+        showToast("未获取到模型列表");
+      } else {
+        showToast(`已获取 ${list.length} 个模型`);
+      }
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setLoadingModels(false);
+    }
+  }
+
+  const [loadingTtsModels, setLoadingTtsModels] = useState(false);
+  const [ttsModels, setTtsModels] = useState<string[]>([]);
+  const OPENAI_TTS_VOICES = [
+    "alloy",
+    "ash",
+    "ballad",
+    "coral",
+    "echo",
+    "fable",
+    "nova",
+    "onyx",
+    "sage",
+    "shimmer",
+  ];
+  const voiceSelectValue = OPENAI_TTS_VOICES.includes(accessStore.ttsVoice)
+    ? accessStore.ttsVoice
+    : "";
+
+  async function fetchTtsModels() {
+    setLoadingTtsModels(true);
+    try {
+      const list = await requestVoiceModelsList();
+      setTtsModels(list);
+      if (!list || list.length === 0) {
+        showToast("未获取到朗读模型");
+      } else {
+        showToast(`已获取 ${list.length} 个朗读模型`);
+      }
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setLoadingTtsModels(false);
+    }
+  }
+  const [loadingVideoModels, setLoadingVideoModels] = useState(false);
+  const [videoModels, setVideoModels] = useState<string[]>([]);
+
+  async function fetchVideoModels() {
+    setLoadingVideoModels(true);
+    try {
+      const list = await requestVideoModelsList();
+      setVideoModels(list);
+      accessStore.setVideoModels(
+        list,
+        accessStore.videoProvider === "custom"
+          ? accessStore.videoEndpoint
+          : accessStore.endpoint,
+      );
+      if (!list || list.length === 0) {
+        showToast("未获取到视频模型");
+      } else {
+        showToast(`已获取 ${list.length} 个视频模型`);
+      }
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setLoadingVideoModels(false);
+    }
+  }
+
   function checkUpdate(force = false) {
     setCheckingUpdate(true);
     updateStore.getLatestVersion(force).then(() => {
@@ -214,12 +313,13 @@ export function Settings() {
     });
   }
 
-  const accessStore = useAccessStore();
-  const enabledAccessControl = useMemo(
-    () => accessStore.enabledAccessControl(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  function checkHealth() {
+    setCheckingHealth(true);
+    setHealth(null);
+    requestHealth()
+      .then((res) => setHealth(res))
+      .finally(() => setCheckingHealth(false));
+  }
 
   const promptStore = usePromptStore();
   const builtinCount = SearchService.count.builtin;
@@ -483,6 +583,46 @@ export function Settings() {
           </SettingItem>
 
           <SettingItem
+            title={Locale.Settings.Endpoint?.Title ?? "API Base URL"}
+            subTitle={
+              Locale.Settings.Endpoint?.SubTitle ?? "用于代理或自定义厂商接口"
+            }
+          >
+            <input
+              value={accessStore.endpoint}
+              type="text"
+              placeholder={
+                Locale.Settings.Endpoint?.Placeholder ??
+                "例如：https://api.openai.com"
+              }
+              onChange={(e) => {
+                accessStore.updateEndpoint(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+
+          <SettingItem
+            title={Locale.Settings.HealthCheck?.Title ?? "健康检查"}
+            subTitle={
+              checkingHealth
+                ? Locale.Settings.HealthCheck?.Checking ?? "正在检查…"
+                : health
+                ? health.ok
+                  ? Locale.Settings.HealthCheck?.Ok ?? "服务正常"
+                  : Locale.Settings.HealthCheck?.Fail(
+                      health.message ?? String(health.status ?? ""),
+                    ) ?? `检查失败：${health?.message ?? health?.status ?? ""}`
+                : ""
+            }
+          >
+            <IconButton
+              icon={<ResetIcon></ResetIcon>}
+              text={Locale.Settings.HealthCheck?.Check ?? "检查"}
+              onClick={checkHealth}
+            />
+          </SettingItem>
+
+          <SettingItem
             title={Locale.Settings.Usage.Title}
             subTitle={
               showUsage
@@ -546,6 +686,303 @@ export function Settings() {
         </List>
 
         <List>
+          <SettingItem title={"语音朗读提供商"}>
+            <select
+              value={accessStore.ttsProvider}
+              onChange={(e) => {
+                accessStore.updateTtsProvider(e.currentTarget.value as any);
+              }}
+            >
+              {["openai", "custom"].map((p) => (
+                <option value={p} key={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </SettingItem>
+          <SettingItem title={"朗读模型"}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <select
+                value={accessStore.ttsModel}
+                onChange={(e) => {
+                  accessStore.updateTtsModel(e.currentTarget.value);
+                }}
+              >
+                {ttsModels && ttsModels.length > 0
+                  ? ttsModels.map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))
+                  : ["tts-1", "gpt-4o-mini-tts"].map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))}
+              </select>
+              <IconButton
+                icon={<ResetIcon />}
+                text={loadingTtsModels ? "获取中…" : "获取/刷新"}
+                onClick={fetchTtsModels}
+              />
+            </div>
+          </SettingItem>
+          <SettingItem title={"朗读音色"}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <select
+                value={voiceSelectValue}
+                onChange={(e) => {
+                  accessStore.updateTtsVoice(e.currentTarget.value);
+                }}
+              >
+                <option value="" disabled>
+                  选择音色
+                </option>
+                {OPENAI_TTS_VOICES.map((v) => (
+                  <option value={v} key={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={accessStore.ttsVoice}
+                type="text"
+                placeholder={"如：alloy 或自定义"}
+                onChange={(e) => {
+                  accessStore.updateTtsVoice(e.currentTarget.value);
+                }}
+              />
+            </div>
+          </SettingItem>
+          <SettingItem title={"朗读格式"}>
+            <select
+              value={accessStore.ttsFormat}
+              onChange={(e) => {
+                accessStore.updateTtsFormat(e.currentTarget.value as any);
+              }}
+            >
+              {["mp3", "wav", "ogg"].map((fmt) => (
+                <option value={fmt} key={fmt}>
+                  {fmt}
+                </option>
+              ))}
+            </select>
+          </SettingItem>
+          <SettingItem title={"朗读 API Key"}>
+            <PasswordInput
+              value={accessStore.ttsApiKey}
+              type="text"
+              placeholder={"仅自定义端点需要"}
+              onChange={(e) => {
+                accessStore.updateTtsApiKey(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"朗读端点"}>
+            <input
+              value={accessStore.ttsEndpoint}
+              type="text"
+              placeholder={"自定义 TTS 服务端点（OpenAI 接口格式）"}
+              onChange={(e) => {
+                accessStore.updateTtsEndpoint(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+        </List>
+
+        <List>
+          <SettingItem title={"视频生成提供商"}>
+            <select
+              value={accessStore.videoProvider}
+              onChange={(e) => {
+                accessStore.updateVideoProvider(e.currentTarget.value as any);
+              }}
+            >
+              {["chat", "custom"].map((p) => (
+                <option value={p} key={p}>
+                  {p === "chat" ? "使用聊天配置" : "自定义"}
+                </option>
+              ))}
+            </select>
+          </SettingItem>
+          <SettingItem title={"视频模型"}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <select
+                value={accessStore.videoModel}
+                onChange={(e) => {
+                  accessStore.updateVideoModel(e.currentTarget.value);
+                }}
+              >
+                {videoModels && videoModels.length > 0
+                  ? videoModels.map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))
+                  : accessStore.models && accessStore.models.length > 0
+                  ? accessStore.models.map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))
+                  : ["gpt-4o-mini", "gpt-4o", "gpt-4.1"].map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))}
+              </select>
+              <IconButton
+                icon={<ResetIcon />}
+                text={loadingVideoModels ? "获取中…" : "获取/刷新"}
+                onClick={fetchVideoModels}
+              />
+            </div>
+          </SettingItem>
+          <SettingItem title={"视频 API Key"}>
+            <PasswordInput
+              value={accessStore.videoApiKey}
+              type="text"
+              placeholder={"仅自定义端点需要"}
+              onChange={(e) => {
+                accessStore.updateVideoApiKey(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"视频端点"}>
+            <input
+              value={accessStore.videoEndpoint}
+              type="text"
+              placeholder={"自定义视频服务端点（OpenAI 接口格式）"}
+              onChange={(e) => {
+                accessStore.updateVideoEndpoint(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"任务创建路径"} subTitle={"如：v1/video/tasks"}>
+            <input
+              value={accessStore.videoCreatePath || ""}
+              type="text"
+              placeholder={"相对路径，拼接到端点后"}
+              onChange={(e) => {
+                accessStore.updateVideoCreatePath(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"任务查询路径"} subTitle={"如：v1/video/tasks/"}>
+            <input
+              value={accessStore.videoQueryPath || ""}
+              type="text"
+              placeholder={"相对路径，后接任务ID"}
+              onChange={(e) => {
+                accessStore.updateVideoQueryPath(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+        </List>
+
+        <List>
+          <SettingItem title={"语音识别提供商"}>
+            <select
+              value={accessStore.voiceProvider}
+              onChange={(e) => {
+                accessStore.updateVoiceProvider(e.currentTarget.value as any);
+              }}
+            >
+              {["openai", "microsoft", "custom"].map((p) => (
+                <option value={p} key={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </SettingItem>
+          <SettingItem title={"语音模型"}>
+            <input
+              value={accessStore.voiceModel}
+              type="text"
+              placeholder={"如：whisper-1"}
+              onChange={(e) => {
+                accessStore.updateVoiceModel(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"语音 API Key"}>
+            <PasswordInput
+              value={accessStore.voiceApiKey}
+              type="text"
+              placeholder={"仅自定义或微软端点需要"}
+              onChange={(e) => {
+                accessStore.updateVoiceApiKey(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"语音端点"}>
+            <input
+              value={accessStore.voiceEndpoint}
+              type="text"
+              placeholder={"自定义或微软 STT 端点"}
+              onChange={(e) => {
+                accessStore.updateVoiceEndpoint(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+        </List>
+
+        <List>
+          <SettingItem title={"翻译提供商"}>
+            <select
+              value={accessStore.translationProvider}
+              onChange={(e) => {
+                accessStore.updateTranslationProvider(
+                  e.currentTarget.value as any,
+                );
+              }}
+            >
+              {["openai", "deepl", "microsoft", "google", "custom"].map((p) => (
+                <option value={p} key={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </SettingItem>
+          <SettingItem title={"目标语言"}>
+            <select
+              value={accessStore.translationTargetLang}
+              onChange={(e) => {
+                accessStore.updateTranslationTargetLang(e.currentTarget.value);
+              }}
+            >
+              {["en", "zh", "ja", "ko", "fr", "de", "es", "it", "ru"].map(
+                (l) => (
+                  <option value={l} key={l}>
+                    {l}
+                  </option>
+                ),
+              )}
+            </select>
+          </SettingItem>
+          <SettingItem title={"翻译 API Key"}>
+            <PasswordInput
+              value={accessStore.translationApiKey}
+              type="text"
+              placeholder={"仅自定义端点需要"}
+              onChange={(e) => {
+                accessStore.updateTranslationApiKey(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+          <SettingItem title={"翻译端点"}>
+            <input
+              value={accessStore.translationEndpoint}
+              type="text"
+              placeholder={"自定义翻译服务端点"}
+              onChange={(e) => {
+                accessStore.updateTranslationEndpoint(e.currentTarget.value);
+              }}
+            />
+          </SettingItem>
+        </List>
+
+        <List>
           <SettingItem
             title={Locale.Settings.Prompt.Disable.Title}
             subTitle={Locale.Settings.Prompt.Disable.SubTitle}
@@ -579,23 +1016,40 @@ export function Settings() {
 
         <List>
           <SettingItem title={Locale.Settings.Model}>
-            <select
-              value={config.modelConfig.model}
-              onChange={(e) => {
-                updateConfig(
-                  (config) =>
-                    (config.modelConfig.model = ModalConfigValidator.model(
-                      e.currentTarget.value,
-                    )),
-                );
-              }}
-            >
-              {ALL_MODELS.map((v) => (
-                <option value={v.name} key={v.name} disabled={!v.available}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <select
+                value={config.modelConfig.model}
+                onChange={(e) => {
+                  updateConfig(
+                    (config) =>
+                      (config.modelConfig.model = ModalConfigValidator.model(
+                        e.currentTarget.value,
+                      )),
+                  );
+                }}
+              >
+                {accessStore.models && accessStore.models.length > 0
+                  ? accessStore.models.map((name) => (
+                      <option value={name} key={name}>
+                        {name}
+                      </option>
+                    ))
+                  : ALL_MODELS.map((v) => (
+                      <option
+                        value={v.name}
+                        key={v.name}
+                        disabled={!v.available}
+                      >
+                        {v.name}
+                      </option>
+                    ))}
+              </select>
+              <IconButton
+                icon={<ResetIcon />}
+                text={loadingModels ? "获取中…" : "获取/刷新"}
+                onClick={fetchModels}
+              />
+            </div>
           </SettingItem>
           <SettingItem
             title={Locale.Settings.Temperature.Title}

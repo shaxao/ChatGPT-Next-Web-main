@@ -1,0 +1,120 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.header {
+  width: 100%;
+  padding: 16px 20px;
+  background: linear-gradient(90deg, var(--second), var(--white));
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.sub {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.videoBox {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  min-height: 60vh;
+}
+
+.video {
+  width: 100%;
+  max-width: 100%;
+  max-height: 85vh;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #000;
+}
+
+.videoFs {
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background: #000;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.markdown {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+.promptOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-height: 50vh;
+  overflow: auto;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.3) 100%);
+  color: #fff;
+}
+
+.promptToolbar {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+
+@media (max-width: 600px) {
+  .promptToolbar {
+    top: auto;
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .promptToolbar>* {
+    transform: scale(0.9);
+  }
+
+  .header {
+    padding: 12px 16px;
+    border-radius: 12px;
+  }
+
+  .video {
+    max-height: 70vh;
+  }
+
+  .promptOverlay {
+    max-height: 40vh;
+    padding: 10px;
+  }
+}

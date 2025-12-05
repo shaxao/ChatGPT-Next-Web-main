@@ -1,75 +1,73 @@
 import { SubmitKey } from "../store/app";
-import type { LocaleType } from "./index";
 
-const tr: LocaleType = {
-  WIP: "Çalışma devam ediyor...",
+const tr = {
+  WIP: "Yakında...",
   Error: {
-    Unauthorized:
-      "Yetkisiz erişim, lütfen erişim kodunu ayarlar sayfasından giriniz.",
+    Unauthorized: "Yetkisiz erişim, lütfen ayarlarda erişim kodunu girin.",
   },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} mesaj`,
   },
   Chat: {
-    SubTitle: (count: number) => `ChatGPT tarafından ${count} mesaj`,
+    SubTitle: (count: number) => `ChatGPT ile ${count} mesaj`,
     Actions: {
-      ChatList: "Sohbet Listesine Git",
-      CompressedHistory: "Sıkıştırılmış Geçmiş Bellek Komutu",
-      Export: "Tüm Mesajları Markdown Olarak Dışa Aktar",
+      ChatList: "Sohbet listesine git",
+      CompressedHistory: "Sıkıştırılmış geçmişi görüntüle",
+      Export: "Geçmişi dışa aktar",
       Copy: "Kopyala",
       Stop: "Durdur",
-      Retry: "Tekrar Dene",
-      Delete: "Delete",
+      Retry: "Tekrar dene",
+      Delete: "Sil",
     },
-    Rename: "Sohbeti Yeniden Adlandır",
+    Rename: "Sohbeti yeniden adlandır",
     Typing: "Yazıyor…",
     Input: (submitKey: string) => {
-      var inputHints = `Göndermek için ${submitKey}`;
+      var inputHints = `${submitKey} ile gönder`;
       if (submitKey === String(SubmitKey.Enter)) {
-        inputHints += ", kaydırmak için Shift + Enter";
+        inputHints += ", Shift + Enter ile satır başı";
       }
-      return inputHints + ", komutları aramak için / (eğik çizgi)";
+      return inputHints + ", / ile otomatik tamamlama";
     },
     Send: "Gönder",
   },
   Export: {
-    Title: "Tüm Mesajlar",
-    Copy: "Tümünü Kopyala",
-    Download: "İndir",
-    MessageFromYou: "Sizin Mesajınız",
-    MessageFromChatGPT: "ChatGPT'nin Mesajı",
+    Title: "Sohbet geçmişini dışa aktar",
+    Copy: "Tümünü kopyala",
+    Download: "Dosya indir",
+    MessageFromYou: "Senden mesaj",
+    MessageFromChatGPT: "ChatGPT'den mesaj",
   },
   Memory: {
-    Title: "Bellek Komutları",
-    EmptyContent: "Henüz değil.",
-    Send: "Belleği Gönder",
-    Copy: "Belleği Kopyala",
-    Reset: "Oturumu Sıfırla",
+    Title: "Geçmiş özeti",
+    EmptyContent: "Henüz özet yok",
+    Send: "Özeti gönder",
+    Copy: "Özeti kopyala",
+    Reset: "Sohbeti sıfırla",
     ResetConfirm:
-      "Sıfırlama, geçerli görüşme geçmişini ve geçmiş belleği siler. Sıfırlamak istediğinizden emin misiniz?",
+      "Sıfırlama, geçerli sohbet geçmişini ve özeti silecek. Emin misin?",
   },
   Home: {
-    NewChat: "Yeni Sohbet",
-    DeleteChat: "Seçili sohbeti silmeyi onaylıyor musunuz?",
-    DeleteToast: "Sohbet Silindi",
-    Revert: "Geri Al",
+    NewChat: "Yeni sohbet",
+    DeleteChat: "Seçilen sohbet silinsin mi?",
+    DeleteToast: "Sohbet silindi",
+    Revert: "Geri al",
   },
   Settings: {
     Title: "Ayarlar",
-    SubTitle: "Tüm Ayarlar",
+    SubTitle: "Seçenekler",
     Actions: {
-      ClearAll: "Tüm Verileri Temizle",
-      ResetAll: "Tüm Ayarları Sıfırla",
+      ClearAll: "Tüm verileri temizle",
+      ResetAll: "Tüm seçenekleri sıfırla",
       Close: "Kapat",
       ConfirmResetAll: {
-        Confirm: "Tüm ayarları sıfırlamak istediğinizden emin misiniz?",
+        Confirm: "Tüm ayarlar sıfırlansın mı?",
       },
       ConfirmClearAll: {
-        Confirm: "Tüm sohbeti sıfırlamak istediğinizden emin misiniz?",
+        Confirm: "Tüm sohbetler silinsin mi?",
       },
     },
     Lang: {
-      Name: "Language", // ATTENTION: if you wanna add a new translation, please do not translate this value, leave it as `Language`
+      Name: "Language",
       Options: {
         cn: "简体中文",
         en: "English",
@@ -83,106 +81,113 @@ const tr: LocaleType = {
     },
     Avatar: "Avatar",
     FontSize: {
-      Title: "Yazı Boyutu",
-      SubTitle: "Sohbet içeriğinin yazı boyutunu ayarlayın",
+      Title: "Yazı boyutu",
+      SubTitle: "Sohbet metni yazı boyutunu ayarlayın",
     },
+
     Update: {
       Version: (x: string) => `Sürüm: ${x}`,
-      IsLatest: "En son sürüm",
-      CheckUpdate: "Güncellemeyi Kontrol Et",
+      IsLatest: "Güncel",
+      CheckUpdate: "Güncellemeyi kontrol et",
       IsChecking: "Güncelleme kontrol ediliyor...",
       FoundUpdate: (x: string) => `Yeni sürüm bulundu: ${x}`,
       GoToUpdate: "Güncelle",
     },
-    SendKey: "Gönder Tuşu",
+    SendKey: "Gönder tuşu",
     Theme: "Tema",
-    TightBorder: "Tam Ekran",
-    SendPreviewBubble: "Mesaj Önizleme Balonu",
+    TightBorder: "Dar kenarlık",
+    SendPreviewBubble: "Gönderi önizleme balonu",
     Prompt: {
       Disable: {
-        Title: "Otomatik tamamlamayı devre dışı bırak",
-        SubTitle: "Otomatik tamamlamayı kullanmak için / (eğik çizgi) girin",
+        Title: "Akıllı otomatik tamamlama devre dışı",
+        SubTitle: "Girdi '/' ile başlarsa otomatik tamamlama tetiklenir",
       },
-      List: "Komut Listesi",
+      List: "Prompt listesi",
       ListCount: (builtin: number, custom: number) =>
         `${builtin} yerleşik, ${custom} kullanıcı tanımlı`,
       Edit: "Düzenle",
       Modal: {
-        Title: "Prompt List",
-        Add: "Add One",
-        Search: "Search Prompts",
+        Title: "Prompt listesi",
+        Add: "Ekle",
+        Search: "Prompt ara",
       },
     },
     HistoryCount: {
-      Title: "Ekli Mesaj Sayısı",
-      SubTitle: "İstek başına ekli gönderilen mesaj sayısı",
+      Title: "Geçmiş mesaj sayısı",
+      SubTitle: "Her isteğe eklenen geçmiş mesaj sayısı",
     },
     CompressThreshold: {
-      Title: "Geçmiş Sıkıştırma Eşiği",
+      Title: "Sıkıştırma eşiği",
       SubTitle:
-        "Sıkıştırılmamış mesajların uzunluğu bu değeri aşarsa sıkıştırılır",
+        "Sıkıştırma, sıkıştırılmamış geçmiş mesajlar eşik değerini aşarsa yapılır",
     },
     Token: {
-      Title: "API Anahtarı",
-      SubTitle: "Erişim kodu sınırını yoksaymak için anahtarınızı kullanın",
-      Placeholder: "OpenAI API Anahtarı",
+      Title: "API Key",
+      SubTitle: "Kendi anahtarını kullanarak erişim kodu kısıtlamasını aş",
+      Placeholder: "OpenAI API Key",
+    },
+    Endpoint: {
+      Title: "API Temel URL",
+      SubTitle: "Proxy ya da özel model sağlayıcı kullan",
+      Placeholder: "örn. https://api.openai.com",
+    },
+    HealthCheck: {
+      Title: "Sağlık kontrolü",
+      Check: "Kontrol",
+      Checking: "Kontrol ediliyor…",
+      Ok: "Servis sağlıklı",
+      Fail: (msg: string) => `Hata: ${msg}`,
     },
     Usage: {
-      Title: "Hesap Bakiyesi",
+      Title: "Bakiye",
       SubTitle(used: any, total: any) {
-        return `Bu ay kullanılan $${used}, abonelik $${total}`;
+        return `Bu ay kullanılan $${used}, abonelik toplam $${total}`;
       },
-      IsChecking: "Kontrol ediliyor...",
-      Check: "Tekrar Kontrol Et",
-      NoAccess: "Bakiyeyi kontrol etmek için API anahtarını girin",
+      IsChecking: "Kontrol ediliyor…",
+      Check: "Tekrar kontrol",
+      NoAccess: "Bakiye için API Key veya erişim kodu gir",
     },
     AccessCode: {
-      Title: "Erişim Kodu",
-      SubTitle: "Erişim kontrolü etkinleştirme",
-      Placeholder: "Erişim Kodu Gerekiyor",
+      Title: "Erişim kodu",
+      SubTitle: "Erişim kontrolü etkin",
+      Placeholder: "Erişim kodunu girin",
     },
-    Model: "Model",
+    Model: "Model (model)",
     Temperature: {
-      Title: "Gerçeklik",
-      SubTitle:
-        "Daha büyük bir değer girildiğinde gerçeklik oranı düşer ve daha rastgele çıktılar üretir",
+      Title: "Sıcaklık",
+      SubTitle: "Yüksek değerler çıktıyı daha rastgele yapar",
     },
     MaxTokens: {
-      Title: "Maksimum Belirteç",
-      SubTitle:
-        "Girdi belirteçlerinin ve oluşturulan belirteçlerin maksimum uzunluğu",
+      Title: "Maks token",
+      SubTitle: "Yanıt başına maksimum token",
     },
     PresencePenlty: {
-      Title: "Varlık Cezası",
-      SubTitle:
-        "Daha büyük bir değer, yeni konular hakkında konuşma olasılığını artırır",
+      Title: "Varlık cezası",
+      SubTitle: "Yüksek değerler yeni konuları artırır",
     },
   },
   Store: {
-    DefaultTopic: "Yeni Konuşma",
-    BotHello: "Merhaba! Size bugün nasıl yardımcı olabilirim?",
-    Error: "Bir şeyler yanlış gitti. Lütfen daha sonra tekrar deneyiniz.",
+    DefaultTopic: "Yeni sohbet",
+    BotHello: "Bugün nasıl yardımcı olabilirim?",
+    Error: "Bir şeyler ters gitti, lütfen sonra tekrar deneyin.",
     Prompt: {
       History: (content: string) =>
-        "Bu, yapay zeka ile kullanıcı arasındaki sohbet geçmişinin bir özetidir: " +
-        content,
-      Topic:
-        "Lütfen herhangi bir giriş, noktalama işareti, tırnak işareti, nokta, sembol veya ek metin olmadan konuşmamızı özetleyen dört ila beş kelimelik bir başlık oluşturun. Çevreleyen tırnak işaretlerini kaldırın.",
-      Summarize:
-        "Gelecekteki bağlam için bir bilgi istemi olarak kullanmak üzere tartışmamızı en fazla 200 kelimeyle özetleyin.",
+        "AI ve kullanıcı arasındaki sohbet geçmişi özeti:" + content,
+      Topic: "4-5 kelimelik kısa bir başlık verin, noktalama yok",
+      Summarize: "Konuşmayı 200 karakter veya daha azda özetleyin",
     },
-    ConfirmClearAll:
-      "Tüm sohbet ve ayar verilerini temizlemeyi onaylıyor musunuz?",
+    ConfirmClearAll: "Tüm sohbetler ve ayarları silmeyi onayla?",
   },
   Copy: {
     Success: "Panoya kopyalandı",
-    Failed: "Kopyalama başarısız oldu, lütfen panoya erişim izni verin",
+    Failed: "Kopyalama başarısız, panoya izin verin",
   },
   Context: {
-    Toast: (x: any) => `${x} bağlamsal bellek komutu`,
-    Edit: "Bağlamsal ve Bellek Komutları",
-    Add: "Yeni Ekle",
+    Toast: (x: any) => `${x} bağlam promptları ayarlandı`,
+    Edit: "Bağlam ve hafıza",
+    Add: "Prompt ekle",
   },
 };
 
+export type LocaleType = typeof tr;
 export default tr;

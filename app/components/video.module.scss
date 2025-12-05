@@ -1,0 +1,162 @@
+.studio {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  height: 100%;
+}
+
+.panel {
+  background: var(--white);
+  border: var(--border-in-light);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--card-shadow);
+  min-height: 0;
+  /* allow inner flex children to scroll on mobile */
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: var(--border-in-light);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: var(--second);
+  border-color: var(--primary);
+  color: var(--black);
+}
+
+.upload {
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  height: 160px;
+  display: grid;
+  place-items: center;
+  color: var(--black);
+  background: var(--second);
+  margin-bottom: 12px;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inputArea {
+  min-height: 120px;
+  border-radius: 10px;
+  border: var(--border-in-light);
+  padding: 10px;
+  background: var(--white);
+  color: var(--black);
+  margin-top: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rightHint {
+  width: 100%;
+  flex: 1;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+  /* fix flex-child scroll clipping */
+  color: var(--black);
+  background: var(--second);
+}
+
+.previewList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.previewItem {
+  aspect-ratio: 16/9;
+  background: var(--second);
+  border-radius: 10px;
+  border: var(--border-in-light);
+}
+
+.divide {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.08);
+  margin: 12px 0;
+}
+
+.outputBox {
+  margin-top: 8px;
+}
+
+.outputBox video,
+.outputBox img,
+.outputBox iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.hintText {
+  white-space: pre-wrap;
+  word-break: break-all;
+  width: 100%;
+}
+
+.statusLine {
+  width: 100%;
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  margin-top: 6px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+@media (max-width: 768px) {
+  .studio {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .tabs {
+    flex-wrap: wrap;
+  }
+
+  .previewList {
+    grid-template-columns: 1fr;
+  }
+
+  .inputArea {
+    min-height: 96px;
+  }
+}

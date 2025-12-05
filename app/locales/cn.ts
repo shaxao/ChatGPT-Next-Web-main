@@ -124,6 +124,18 @@ const cn = {
       SubTitle: "使用自己的 Key 可绕过密码访问限制",
       Placeholder: "OpenAI API Key",
     },
+    Endpoint: {
+      Title: "API 基础地址",
+      SubTitle: "用于请求代理或自定义模型厂商",
+      Placeholder: "例如：https://api.openai.com",
+    },
+    HealthCheck: {
+      Title: "健康检查",
+      Check: "检查",
+      Checking: "正在检查…",
+      Ok: "服务正常",
+      Fail: (msg: string) => `检查失败：${msg}`,
+    },
     Usage: {
       Title: "余额查询",
       SubTitle(used: any, total: any) {
@@ -162,7 +174,7 @@ const cn = {
       Topic:
         "使用四到五个字直接返回这句话的简要主题，不要解释、不要标点、不要语气词、不要多余文本，如果没有主题，请直接返回“闲聊”",
       Summarize:
-        "简要总结一下你和用户的对话，用作后续的上下文提示 prompt，控制在 200 字以内",
+        "简要总结一下和你用户的对话，用作后续的上下文提示 prompt，控制在 200 字以内",
     },
     ConfirmClearAll: "确认清除所有聊天、设置数据？",
   },

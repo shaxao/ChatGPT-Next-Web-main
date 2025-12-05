@@ -36,7 +36,7 @@
 
   --theme-color: var(--gray);
 
-  div:not(.no-dark) > svg {
+  div:not(.no-dark)>svg {
     filter: invert(0.5);
   }
 }
@@ -83,6 +83,7 @@
     @include dark;
   }
 }
+
 html {
   height: var(--full-height);
 }
@@ -104,6 +105,15 @@ body {
   @media only screen and (max-width: 600px) {
     background-color: var(--second);
   }
+}
+
+/* Ensure explicit theme selection overrides OS preference */
+html.light {
+  @include light;
+}
+
+html.dark {
+  @include dark;
 }
 
 ::-webkit-scrollbar {

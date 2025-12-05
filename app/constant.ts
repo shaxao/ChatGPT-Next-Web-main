@@ -11,6 +11,8 @@ export enum Path {
   Home = "/",
   Chat = "/chat",
   Settings = "/settings",
+  Video = "/video",
+  Square = "/square",
 }
 
 export const MAX_SIDEBAR_WIDTH = 500;

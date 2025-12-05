@@ -140,8 +140,6 @@
   overflow: auto;
 }
 
-.chat-list {
-}
 
 .chat-item {
   padding: 10px 14px;
@@ -276,11 +274,16 @@
 .sidebar-tail {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   padding-top: 20px;
 }
 
 .sidebar-actions {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .sidebar-action:not(:last-child) {
@@ -528,6 +531,26 @@
   .chat-input-send {
     bottom: 30px;
   }
+}
+
+// linear translating progress under input
+@keyframes chat-linear-progress {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.chat-input-progress {
+  height: 2px;
+  width: 100%;
+  border-radius: 2px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--primary) 0%, rgba(0,0,0,0.08) 50%, var(--primary) 100%);
+  background-size: 200% 100%;
+  animation: chat-linear-progress 1.2s linear infinite;
 }
 
 .export-content {

@@ -9,3 +9,6 @@ declare module "*.scss" {
 }
 
 declare module "*.svg";
+
+// Fix missing type definition warning when tooling attempts to include it implicitly
+declare module "hoist-non-react-statics";

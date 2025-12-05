@@ -41,6 +41,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&display=swap"
           rel="stylesheet"
         ></link>
+        {/* Performance hints for common APIs used by users */}
+        <link rel="preconnect" href="https://api.openai.com" />
+        <link rel="dns-prefetch" href="https://api.openai.com" />
+        <link rel="preconnect" href="https://raw.githubusercontent.com" />
+        <link rel="dns-prefetch" href="https://raw.githubusercontent.com" />
+        <link rel="preconnect" href="https://raw.fgit.ml" />
+        <link rel="dns-prefetch" href="https://raw.fgit.ml" />
         <script src="/serviceWorkerRegister.js" defer></script>
       </head>
       <body>{children}</body>

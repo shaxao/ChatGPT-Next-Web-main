@@ -1,8 +1,8 @@
 import { SubmitKey } from "../store/app";
-import type { LocaleType } from "./index";
+import Locale from "./index";
 
-const en: LocaleType = {
-  WIP: "WIP...",
+const en = {
+  WIP: "Coming Soon...",
   Error: {
     Unauthorized:
       "Unauthorized access, please enter access code in settings page.",
@@ -13,9 +13,9 @@ const en: LocaleType = {
   Chat: {
     SubTitle: (count: number) => `${count} messages with ChatGPT`,
     Actions: {
-      ChatList: "Go To Chat List",
-      CompressedHistory: "Compressed History Memory Prompt",
-      Export: "Export All Messages as Markdown",
+      ChatList: "Go to Chat List",
+      CompressedHistory: "View Compressed History Prompt",
+      Export: "Export All Messages",
       Copy: "Copy",
       Stop: "Stop",
       Retry: "Retry",
@@ -28,14 +28,14 @@ const en: LocaleType = {
       if (submitKey === String(SubmitKey.Enter)) {
         inputHints += ", Shift + Enter to wrap";
       }
-      return inputHints + ", / to search prompts";
+      return inputHints + ", / to trigger autocomplete";
     },
     Send: "Send",
   },
   Export: {
-    Title: "All Messages",
+    Title: "Export Chat History",
     Copy: "Copy All",
-    Download: "Download",
+    Download: "Download as a File",
     MessageFromYou: "Message From You",
     MessageFromChatGPT: "Message From ChatGPT",
   },
@@ -44,32 +44,31 @@ const en: LocaleType = {
     EmptyContent: "Nothing yet.",
     Send: "Send Memory",
     Copy: "Copy Memory",
-    Reset: "Reset Session",
-    ResetConfirm:
-      "Resetting will clear the current conversation history and historical memory. Are you sure you want to reset?",
+    Reset: "Reset Memory",
+    ResetConfirm: "Confirm to reset memory?",
   },
   Home: {
     NewChat: "New Chat",
-    DeleteChat: "Confirm to delete the selected conversation?",
+    DeleteChat: "Confirm to delete the selected chat?",
     DeleteToast: "Chat Deleted",
     Revert: "Revert",
   },
   Settings: {
     Title: "Settings",
-    SubTitle: "All Settings",
+    SubTitle: "Options",
     Actions: {
       ClearAll: "Clear All Data",
       ResetAll: "Reset All Settings",
       Close: "Close",
       ConfirmResetAll: {
-        Confirm: "Are you sure you want to reset all configurations?",
+        Confirm: "Are you sure to reset all settings?",
       },
       ConfirmClearAll: {
-        Confirm: "Are you sure you want to reset all chat?",
+        Confirm: "Are you sure to clear all chat?",
       },
     },
     Lang: {
-      Name: "Language", // ATTENTION: if you wanna add a new translation, please do not translate this value, leave it as `Language`
+      Name: "Language",
       Options: {
         cn: "简体中文",
         en: "English",
@@ -84,13 +83,14 @@ const en: LocaleType = {
     Avatar: "Avatar",
     FontSize: {
       Title: "Font Size",
-      SubTitle: "Adjust font size of chat content",
+      SubTitle: "Adjust the font size of chat content",
     },
+
     Update: {
       Version: (x: string) => `Version: ${x}`,
-      IsLatest: "Latest version",
+      IsLatest: "Latest",
       CheckUpdate: "Check Update",
-      IsChecking: "Checking update...",
+      IsChecking: "Checking for updates...",
       FoundUpdate: (x: string) => `Found new version: ${x}`,
       GoToUpdate: "Update",
     },
@@ -100,86 +100,98 @@ const en: LocaleType = {
     SendPreviewBubble: "Send Preview Bubble",
     Prompt: {
       Disable: {
-        Title: "Disable auto-completion",
-        SubTitle: "Input / to trigger auto-completion",
+        Title: "Disable Smart Prompt Autocomplete",
+        SubTitle:
+          "Autocomplete will trigger when input begins with `/`, enter space to trigger",
       },
       List: "Prompt List",
       ListCount: (builtin: number, custom: number) =>
-        `${builtin} built-in, ${custom} user-defined`,
+        `${builtin} builtin, ${custom} user defined`,
       Edit: "Edit",
       Modal: {
         Title: "Prompt List",
-        Add: "Add One",
+        Add: "Add",
         Search: "Search Prompts",
       },
     },
     HistoryCount: {
-      Title: "Attached Messages Count",
-      SubTitle: "Number of sent messages attached per request",
+      Title: "History Messages Count",
+      SubTitle: "The number of history messages attached to each request",
     },
     CompressThreshold: {
-      Title: "History Compression Threshold",
+      Title: "Compress Threshold",
       SubTitle:
-        "Will compress if uncompressed messages length exceeds the value",
+        "Compression will be performed if the uncompressed history messages exceed the threshold",
     },
     Token: {
       Title: "API Key",
-      SubTitle: "Use your key to ignore access code limit",
+      SubTitle: "Use your own key to ignore access code restrictions",
       Placeholder: "OpenAI API Key",
     },
-    Usage: {
-      Title: "Account Balance",
-      SubTitle(used: any, total: any) {
-        return `Used this month $${used}, subscription $${total}`;
-      },
-      IsChecking: "Checking...",
+    Endpoint: {
+      Title: "API Base URL",
+      SubTitle: "Use a proxy or custom model provider",
+      Placeholder: "e.g. https://api.openai.com",
+    },
+    HealthCheck: {
+      Title: "Health Check",
       Check: "Check",
-      NoAccess: "Enter API Key to check balance",
+      Checking: "Checking…",
+      Ok: "Service Healthy",
+      Fail: (msg: string) => `Failed: ${msg}`,
+    },
+    Usage: {
+      Title: "Balance",
+      SubTitle(used: any, total: any) {
+        return `Used this month $${used}, subscription total $${total}`;
+      },
+      IsChecking: "Checking…",
+      Check: "Check Again",
+      NoAccess: "Enter API Key or Access Code to check balance",
     },
     AccessCode: {
       Title: "Access Code",
       SubTitle: "Access control enabled",
-      Placeholder: "Need Access Code",
+      Placeholder: "Enter Access Code",
     },
-    Model: "Model",
+    Model: "Model (model)",
     Temperature: {
       Title: "Temperature",
-      SubTitle: "A larger value makes the more random output",
+      SubTitle: "Higher values will make the output more random",
     },
     MaxTokens: {
       Title: "Max Tokens",
-      SubTitle: "Maximum length of input tokens and generated tokens",
+      SubTitle: "Max tokens per response",
     },
     PresencePenlty: {
       Title: "Presence Penalty",
-      SubTitle:
-        "A larger value increases the likelihood to talk about new topics",
+      SubTitle: "Higher values make model more likely to talk about new topics",
     },
   },
   Store: {
-    DefaultTopic: "New Conversation",
-    BotHello: "Hello! How can I assist you today?",
+    DefaultTopic: "New Chat",
+    BotHello: "How can I help you today?",
     Error: "Something went wrong, please try again later.",
     Prompt: {
       History: (content: string) =>
-        "This is a summary of the chat history between the AI and the user as a recap: " +
-        content,
+        "This is a summary of chat history between AI and user:" + content,
       Topic:
-        "Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, or additional text. Remove enclosing quotation marks.",
+        "Provide a short title summarizing the sentence in 4 to 5 words, no punctuation",
       Summarize:
-        "Summarize our discussion briefly in 200 words or less to use as a prompt for future context.",
+        "Summarize the conversation between you and user in 200 characters or fewer",
     },
-    ConfirmClearAll: "Confirm to clear all chat and setting data?",
+    ConfirmClearAll: "Confirm to clear all chats and settings?",
   },
   Copy: {
     Success: "Copied to clipboard",
-    Failed: "Copy failed, please grant permission to access clipboard",
+    Failed: "Copy failed, please allow clipboard permissions",
   },
   Context: {
-    Toast: (x: any) => `With ${x} contextual prompts`,
-    Edit: "Contextual and Memory Prompts",
-    Add: "Add One",
+    Toast: (x: any) => `${x} context prompts set`,
+    Edit: "Context and Memory",
+    Add: "Add a Prompt",
   },
 };
 
+export type LocaleType = typeof en;
 export default en;

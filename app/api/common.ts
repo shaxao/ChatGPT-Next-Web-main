@@ -9,7 +9,8 @@ export async function requestOpenai(req: NextRequest) {
   const apiKey = req.headers.get("token");
   const openaiPath = req.headers.get("path");
 
-  let baseUrl = BASE_URL;
+  const headerBaseUrl = req.headers.get("base-url");
+  let baseUrl = headerBaseUrl ?? BASE_URL;
 
   if (!baseUrl.startsWith("http")) {
     baseUrl = `${PROTOCOL}://${baseUrl}`;
@@ -22,13 +23,21 @@ export async function requestOpenai(req: NextRequest) {
     console.log("[Org ID]", process.env.OPENAI_ORG_ID);
   }
 
-  return fetch(`${baseUrl}/${openaiPath}`, {
+  const contentType = req.headers.get("content-type") || "application/json";
+  const init: RequestInit = {
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": contentType,
       Authorization: `Bearer ${apiKey}`,
-      ...(process.env.OPENAI_ORG_ID && { "OpenAI-Organization": process.env.OPENAI_ORG_ID }),
+      ...(process.env.OPENAI_ORG_ID && {
+        "OpenAI-Organization": process.env.OPENAI_ORG_ID,
+      }),
     },
     method: req.method,
     body: req.body,
-  });
+  };
+
+  // Node.js 18+ requires `duplex: 'half'` when sending a ReadableStream body
+  if (init.body) (init as any).duplex = "half";
+
+  return fetch(`${baseUrl}/${openaiPath}`, init as any);
 }

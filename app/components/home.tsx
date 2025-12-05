@@ -41,17 +41,37 @@ const SideBar = dynamic(async () => (await import("./sidebar")).SideBar, {
   loading: () => <Loading noLogo />,
 });
 
+const VideoStudio = dynamic(async () => (await import("./video")).default, {
+  loading: () => <Loading noLogo />,
+});
+
+const Gallery = dynamic(async () => (await import("./gallery")).default, {
+  loading: () => <Loading noLogo />,
+});
+const GalleryDetail = dynamic(
+  async () => (await import("./gallery-detail")).default,
+  {
+    loading: () => <Loading noLogo />,
+  },
+);
+
 export function useSwitchTheme() {
   const config = useChatStore((state) => state.config);
 
   useEffect(() => {
-    document.body.classList.remove("light");
-    document.body.classList.remove("dark");
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.remove("light");
+    html.classList.remove("dark");
+    body.classList.remove("light");
+    body.classList.remove("dark");
 
     if (config.theme === "dark") {
-      document.body.classList.add("dark");
+      html.classList.add("dark");
+      body.classList.add("dark");
     } else if (config.theme === "light") {
-      document.body.classList.add("light");
+      html.classList.add("light");
+      body.classList.add("light");
     }
 
     const metaDescriptionDark = document.querySelector(
@@ -65,7 +85,7 @@ export function useSwitchTheme() {
       metaDescriptionDark?.setAttribute("content", "#151515");
       metaDescriptionLight?.setAttribute("content", "#fafafa");
     } else {
-      const themeColor = getCSSVar("--themeColor");
+      const themeColor = getCSSVar("--theme-color");
       metaDescriptionDark?.setAttribute("content", themeColor);
       metaDescriptionLight?.setAttribute("content", themeColor);
     }
@@ -98,6 +118,9 @@ function WideScreen() {
           <Route path={Path.Home} element={<Chat />} />
           <Route path={Path.Chat} element={<Chat />} />
           <Route path={Path.Settings} element={<Settings />} />
+          <Route path={Path.Video} element={<VideoStudio />} />
+          <Route path={`${Path.Square}/:id`} element={<GalleryDetail />} />
+          <Route path={Path.Square} element={<Gallery />} />
         </Routes>
       </div>
     </div>
@@ -117,6 +140,9 @@ function MobileScreen() {
           <Route path={Path.Home} element={null} />
           <Route path={Path.Chat} element={<Chat />} />
           <Route path={Path.Settings} element={<Settings />} />
+          <Route path={Path.Video} element={<VideoStudio />} />
+          <Route path={`${Path.Square}/:id`} element={<GalleryDetail />} />
+          <Route path={Path.Square} element={<Gallery />} />
         </Routes>
       </div>
     </div>

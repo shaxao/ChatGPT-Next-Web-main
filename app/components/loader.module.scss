@@ -1,0 +1,70 @@
+.loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(1200px 800px at 10% -10%, rgba(52, 211, 153, 0.15), transparent 60%),
+              radial-gradient(900px 500px at 110% 10%, rgba(0, 194, 255, 0.12), transparent 60%),
+              #0f1115;
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.canvas {
+  width: min(720px, 90vw);
+  height: auto;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+}
+
+.brand {
+  font: 600 16px/1.2 system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  fill: #cbd5e1;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 1px 6px rgba(0,0,0,0.35));
+}
+
+.dot {
+  animation: float 1.6s ease-in-out infinite;
+}
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.15s; }
+.dot:nth-child(3) { animation-delay: 0.3s; }
+.dot:nth-child(4) { animation-delay: 0.45s; }
+.dot:nth-child(5) { animation-delay: 0.6s; }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.2);
+  }
+}
+
+.progress {
+  position: absolute;
+  bottom: 8vh;
+  width: min(360px, 70vw);
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+}
+
+.bar {
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(90deg, #8a2be2, #00c2ff, #34d399);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-60%); background-position: 0 0; }
+  50% { transform: translateX(30%); background-position: 100% 0; }
+  100% { transform: translateX(120%); background-position: 0 0; }
+}

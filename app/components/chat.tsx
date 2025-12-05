@@ -21,6 +21,10 @@ import DarkIcon from "../icons/dark.svg";
 import AutoIcon from "../icons/auto.svg";
 import BottomIcon from "../icons/bottom.svg";
 import StopIcon from "../icons/pause.svg";
+import ResetIcon from "../icons/reload.svg";
+import ClearIcon from "../icons/clear.svg";
+import MicIcon from "../icons/mic.svg";
+import TranslateIcon from "../icons/translate.svg";
 
 import {
   Message,
@@ -32,6 +36,8 @@ import {
   useAccessStore,
   Theme,
   ModelType,
+  ALL_MODELS,
+  ModalConfigValidator,
 } from "../store";
 
 import {
@@ -45,7 +51,13 @@ import {
 
 import dynamic from "next/dynamic";
 
-import { ControllerPool } from "../requests";
+import {
+  ControllerPool,
+  requestModelsList,
+  requestTranscribeAudio,
+  requestTranslate,
+  requestTextToSpeech,
+} from "../requests";
 import { Prompt, usePromptStore } from "../store/prompt";
 import Locale from "../locales";
 
@@ -53,7 +65,7 @@ import { IconButton } from "./button";
 import styles from "./home.module.scss";
 import chatStyle from "./chat.module.scss";
 
-import { Input, Modal, showModal } from "./ui-lib";
+import { Input, Modal, showModal, showToast } from "./ui-lib";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../constant";
 
@@ -360,8 +372,161 @@ export function ChatActions(props: {
   showPromptModal: () => void;
   scrollToBottom: () => void;
   hitBottom: boolean;
+  onUpdateInput: (text: string) => void;
+  inputValue: string;
+  onTranslatingChange?: (busy: boolean) => void;
 }) {
   const chatStore = useChatStore();
+  const accessStore = useAccessStore();
+  const config = useChatStore((state) => state.config);
+  const updateConfig = useChatStore((state) => state.updateConfig);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  // uploader
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  async function onFilesSelected(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    let attachedCount = 0;
+    for (const file of Array.from(files)) {
+      const type = file.type;
+      const isText =
+        type.startsWith("text/") ||
+        type === "application/json" ||
+        type === "text/markdown" ||
+        type === "text/csv";
+      if (!isText) {
+        showToast(`暂不支持该文件类型: ${type || file.name}`);
+        continue;
+      }
+      const content = await file.text();
+      chatStore.updateCurrentSession((session) => {
+        session.context.push(
+          createMessage({
+            role: "system",
+            content: `附件 ${file.name}:\n\n${content}`,
+          }),
+        );
+      });
+      attachedCount += 1;
+    }
+    if (attachedCount > 0) {
+      showToast(`已附加 ${attachedCount} 个文件到上下文`);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  // voice recorder
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const [recordState, setRecordState] = useState<
+    "idle" | "recording" | "awaiting_restore"
+  >("idle");
+  async function onVoiceClick() {
+    try {
+      if (recordState === "idle") {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        const mr = new MediaRecorder(stream);
+        mediaRecorderRef.current = mr;
+        chunksRef.current = [];
+        mr.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        mr.onstop = async () => {
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          try {
+            const text = await requestTranscribeAudio(blob);
+            if (!text || text.length === 0) {
+              showToast("未识别到语音内容");
+            } else {
+              props.onUpdateInput(text);
+              showToast("已转写到输入框");
+            }
+          } catch (e: any) {
+            showToast(String(e?.message ?? e));
+          } finally {
+            chunksRef.current = [];
+            // 识别完成后保持“输入中”图标，等待用户点击恢复
+            setRecordState("awaiting_restore");
+          }
+        };
+        mr.start();
+        setRecordState("recording");
+      } else if (recordState === "recording") {
+        mediaRecorderRef.current?.stop();
+        // 不在这里恢复，等待识别完成后由用户点击恢复
+      } else {
+        // awaiting_restore -> 恢复到 idle
+        setRecordState("idle");
+      }
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    }
+  }
+
+  // translation
+  const LANG_OPTIONS = [
+    { code: "zh", label: "中文" },
+    { code: "en", label: "英语" },
+    { code: "ja", label: "日语" },
+    { code: "ko", label: "韩语" },
+    { code: "fr", label: "法语" },
+    { code: "de", label: "德语" },
+    { code: "es", label: "西班牙语" },
+    { code: "it", label: "意大利语" },
+    { code: "ru", label: "俄语" },
+  ];
+  const [translating, setTranslating] = useState(false);
+  async function doTranslate() {
+    const text = props.inputValue || "";
+    if (!text.trim()) {
+      showToast("输入框为空，无法翻译");
+      return;
+    }
+    if (translating) return;
+    props.onTranslatingChange?.(true);
+    setTranslating(true);
+    try {
+      const translated = await requestTranslate(
+        text,
+        accessStore.translationTargetLang || "zh",
+      );
+      props.onUpdateInput(translated);
+      showToast("已翻译到输入框");
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setTranslating(false);
+      props.onTranslatingChange?.(false);
+    }
+  }
+  function openTranslateMenu() {
+    showModal({
+      title: "选择目标语言",
+      children: (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {LANG_OPTIONS.map((l) => (
+            <div
+              key={l.code}
+              className="clickable"
+              onClick={() => {
+                accessStore.updateTranslationTargetLang(l.code);
+                doTranslate();
+              }}
+              style={{
+                padding: "6px 10px",
+                border: "1px solid var(--borderColor)",
+                borderRadius: 6,
+              }}
+            >
+              {l.label}
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
 
   // switch themes
   const theme = chatStore.config.theme;
@@ -376,6 +541,34 @@ export function ChatActions(props: {
   // stop all responses
   const couldStop = ControllerPool.hasPending();
   const stopAll = () => ControllerPool.stopAll();
+
+  // clear context (memory + custom context)
+  function clearContext() {
+    chatStore.updateCurrentSession((session) => {
+      session.context = [];
+      session.memoryPrompt = "";
+      session.lastSummarizeIndex = 0;
+    });
+    showToast("已清理上下文");
+  }
+
+  // fetch/refresh models
+  async function fetchModels() {
+    setLoadingModels(true);
+    try {
+      const list = await requestModelsList();
+      accessStore.setModels(list, accessStore.endpoint);
+      if (!list || list.length === 0) {
+        showToast("未获取到模型列表");
+      } else {
+        showToast(`已获取 ${list.length} 个模型`);
+      }
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setLoadingModels(false);
+    }
+  }
 
   return (
     <div className={chatStyle["chat-input-actions"]}>
@@ -407,6 +600,7 @@ export function ChatActions(props: {
       <div
         className={`${chatStyle["chat-input-action"]} clickable`}
         onClick={nextTheme}
+        title={Locale.Settings.Theme}
       >
         {theme === Theme.Auto ? (
           <AutoIcon />
@@ -415,6 +609,133 @@ export function ChatActions(props: {
         ) : theme === Theme.Dark ? (
           <DarkIcon />
         ) : null}
+      </div>
+
+      <div
+        className={`${chatStyle["chat-input-action"]} clickable`}
+        onClick={clearContext}
+        title={"清理上下文"}
+      >
+        <ClearIcon />
+      </div>
+
+      {/* Upload files as context */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="text/*,application/json,text/markdown,text/csv"
+        style={{ display: "none" }}
+        onChange={(e) => onFilesSelected(e.currentTarget.files)}
+      />
+      <div
+        className={`${chatStyle["chat-input-action"]} clickable`}
+        onClick={() => fileInputRef.current?.click()}
+        title={"上传文件到上下文"}
+      >
+        <AddIcon />
+      </div>
+
+      {/* Voice input */}
+      <div
+        className={`${chatStyle["chat-input-action"]} clickable`}
+        onClick={onVoiceClick}
+        title={
+          recordState === "idle"
+            ? "开始语音输入"
+            : recordState === "recording"
+            ? "正在录音，点击停止并转写"
+            : "转写完成，点击恢复"
+        }
+      >
+        {recordState === "idle" ? (
+          <MicIcon width={16} height={16} />
+        ) : (
+          <LoadingIcon />
+        )}
+      </div>
+
+      {/* Translate input */}
+      <div
+        className={`${chatStyle["chat-input-action"]} clickable`}
+        onClick={translating ? undefined : openTranslateMenu}
+        title={translating ? "正在翻译…" : "翻译输入框内容"}
+        aria-busy={translating}
+        style={{ pointerEvents: translating ? "none" : undefined }}
+      >
+        {translating ? (
+          <LoadingIcon />
+        ) : (
+          <TranslateIcon width={16} height={16} />
+        )}
+      </div>
+
+      {/* Model selection: show current model as text, click to open menu */}
+      <div
+        className={`${chatStyle["chat-input-action"]} clickable`}
+        onClick={() => {
+          const models =
+            accessStore.models && accessStore.models.length > 0
+              ? accessStore.models
+              : ALL_MODELS.filter((v) => v.available).map((v) => v.name);
+          const current = config.modelConfig.model;
+          showModal({
+            title: "选择模型",
+            children: (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                  maxHeight: 240,
+                  overflow: "auto",
+                }}
+              >
+                {models.map((name) => {
+                  const selected = name === current;
+                  return (
+                    <div
+                      key={name}
+                      className="clickable"
+                      onClick={() => {
+                        updateConfig(
+                          (config) =>
+                            (config.modelConfig.model =
+                              ModalConfigValidator.model(name)),
+                        );
+                      }}
+                      style={{
+                        padding: "6px 8px",
+                        border: "1px solid var(--borderColor)",
+                        borderRadius: 6,
+                        backgroundColor: selected
+                          ? "var(--gray)"
+                          : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      {selected ? <span>✓</span> : null}
+                      <span>{name}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ),
+            actions: [
+              <IconButton
+                key="refresh"
+                icon={<ResetIcon />}
+                text={loadingModels ? "获取中…" : "获取/刷新"}
+                onClick={fetchModels}
+              />,
+            ],
+          });
+        }}
+        title={`当前模型：${config.modelConfig.model}`}
+      >
+        <span style={{ fontSize: 12 }}>{config.modelConfig.model}</span>
       </div>
     </div>
   );
@@ -434,11 +755,29 @@ export function Chat() {
   const [userInput, setUserInput] = useState("");
   const [beforeInput, setBeforeInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [translatingMessageId, setTranslatingMessageId] = useState<
+    number | null
+  >(null);
+  const [speaking, setSpeaking] = useState<{
+    id: number | null;
+    loading: boolean;
+  }>({ id: null, loading: false });
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const [audioTick, setAudioTick] = useState(0);
   const { submitKey, shouldSubmit } = useSubmitHandler();
   const { scrollRef, setAutoScroll, scrollToBottom } = useScrollToBottom();
   const [hitBottom, setHitBottom] = useState(false);
   const isMobileScreen = useMobileScreen();
   const navigate = useNavigate();
+
+  const formatTime = (s?: number) => {
+    const sec = Math.max(0, Math.floor(s || 0));
+    const mm = Math.floor(sec / 60);
+    const ss = sec % 60;
+    return `${mm}:${String(ss).padStart(2, "0")}`;
+  };
 
   const onChatBodyScroll = (e: HTMLElement) => {
     const isTouchBottom = e.scrollTop + e.clientHeight >= e.scrollHeight - 20;
@@ -589,6 +928,159 @@ export function Chat() {
 
   const accessStore = useAccessStore();
 
+  // message translation helpers
+  const MSG_LANG_OPTIONS = [
+    { code: "zh", label: "中文" },
+    { code: "en", label: "英语" },
+    { code: "ja", label: "日语" },
+    { code: "ko", label: "韩语" },
+    { code: "fr", label: "法语" },
+    { code: "de", label: "德语" },
+    { code: "es", label: "西班牙语" },
+    { code: "it", label: "意大利语" },
+    { code: "ru", label: "俄语" },
+  ];
+  async function doTranslateMessage(
+    id: number,
+    content: string,
+    target: string,
+  ) {
+    if (!content || !content.trim()) {
+      showToast("消息为空，无法翻译");
+      return;
+    }
+    if (translatingMessageId != null) return;
+    setTranslatingMessageId(id);
+    try {
+      const translated = await requestTranslate(
+        content,
+        target || accessStore.translationTargetLang || "zh",
+      );
+      showModal({
+        title: `翻译结果（${target}）`,
+        children: (
+          <div className="markdown-body">
+            <pre
+              className={styles["export-content"]}
+              style={{ whiteSpace: "pre-wrap" }}
+            >
+              {translated}
+            </pre>
+          </div>
+        ),
+        actions: [
+          <IconButton
+            key="copy"
+            icon={<CopyIcon />}
+            bordered
+            text={"复制"}
+            onClick={() => copyToClipboard(translated)}
+          />,
+          <IconButton
+            key="fill"
+            icon={<RenameIcon />}
+            bordered
+            text={"填充到输入框"}
+            onClick={() => setUserInput(translated)}
+          />,
+        ],
+      });
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+    } finally {
+      setTranslatingMessageId(null);
+    }
+  }
+  function openTranslateMessageMenu(id: number, content: string) {
+    showModal({
+      title: "选择目标语言",
+      children: (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {MSG_LANG_OPTIONS.map((l) => (
+            <div
+              key={l.code}
+              className="clickable"
+              onClick={() => doTranslateMessage(id, content, l.code)}
+              style={{
+                padding: "6px 10px",
+                border: "1px solid var(--borderColor)",
+                borderRadius: 6,
+              }}
+            >
+              {l.label}
+            </div>
+          ))}
+        </div>
+      ),
+    });
+  }
+
+  async function doSpeakMessage(id: number, content: string) {
+    if (!content || !content.trim()) {
+      showToast("消息为空，无法朗读");
+      return;
+    }
+    if (speaking.loading) return;
+    setSpeaking({ id, loading: true });
+    try {
+      const blob = await requestTextToSpeech(content, {
+        format: accessStore.ttsFormat || "mp3",
+        voice: accessStore.ttsVoice || "alloy",
+        model: accessStore.ttsModel || "tts-1",
+      });
+      if (!blob || blob.size === 0) {
+        throw new Error("生成的音频为空");
+      }
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
+      audioRef.current = new Audio();
+      audioRef.current.preload = "auto";
+      audioRef.current.src = url;
+      audioRef.current.oncanplay = async () => {
+        try {
+          await audioRef.current?.play();
+        } catch (err: any) {
+          showToast(String(err?.message || err));
+        }
+      };
+      audioRef.current.ontimeupdate = () => setAudioTick((t) => t + 1);
+      audioRef.current.ondurationchange = () => setAudioTick((t) => t + 1);
+      audioRef.current.onerror = () => {
+        showToast("无法播放音频，请检查格式或网络");
+      };
+      audioRef.current.onended = () => {
+        setSpeaking({ id: null, loading: false });
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+          audioUrlRef.current = null;
+        }
+        audioRef.current = null;
+      };
+      // 触发加载
+      audioRef.current.load();
+      setSpeaking({ id, loading: false });
+    } catch (e: any) {
+      showToast(String(e?.message ?? e));
+      setSpeaking({ id: null, loading: false });
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
+      audioRef.current = null;
+    }
+  }
+  function stopSpeaking() {
+    try {
+      audioRef.current?.pause();
+    } catch {}
+    audioRef.current = null;
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    setSpeaking({ id: null, loading: false });
+  }
+
   if (
     context.length === 0 &&
     session.messages.at(0)?.content !== BOT_HELLO.content
@@ -729,6 +1221,7 @@ export function Chat() {
             i > 0 &&
             !(message.preview || message.content.length === 0);
           const showTyping = message.preview || message.streaming;
+          const msgId = message.id ?? i;
 
           return (
             <div
@@ -770,6 +1263,40 @@ export function Chat() {
                           >
                             {Locale.Chat.Actions.Retry}
                           </div>
+                          <div
+                            className={styles["chat-message-top-action"]}
+                            onClick={() =>
+                              openTranslateMessageMenu(msgId, message.content)
+                            }
+                            aria-busy={translatingMessageId === msgId}
+                          >
+                            {translatingMessageId === msgId ? (
+                              <LoadingIcon />
+                            ) : (
+                              "翻译"
+                            )}
+                          </div>
+                          <div
+                            className={styles["chat-message-top-action"]}
+                            onClick={() => {
+                              if (speaking.id === msgId) {
+                                stopSpeaking();
+                              } else {
+                                doSpeakMessage(msgId, message.content);
+                              }
+                            }}
+                            aria-busy={
+                              speaking.loading && speaking.id === msgId
+                            }
+                          >
+                            {speaking.loading && speaking.id === msgId ? (
+                              <LoadingIcon />
+                            ) : speaking.id === msgId ? (
+                              "停止朗读"
+                            ) : (
+                              "朗读"
+                            )}
+                          </div>
                         </>
                       )}
 
@@ -801,6 +1328,42 @@ export function Chat() {
                     <div className={styles["chat-message-action-date"]}>
                       {message.date.toLocaleString()}
                     </div>
+                    {speaking.id === (message.id ?? i) && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          width: "100%",
+                          maxWidth: 420,
+                        }}
+                      >
+                        <span style={{ fontSize: 12, opacity: 0.7 }}>
+                          {audioRef.current
+                            ? formatTime(audioRef.current.currentTime)
+                            : "0:00"}
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={audioRef.current?.duration || 0}
+                          step={0.01}
+                          value={audioRef.current?.currentTime || 0}
+                          onChange={(e) => {
+                            const v = Number(e.currentTarget.value);
+                            if (audioRef.current) {
+                              audioRef.current.currentTime = v;
+                            }
+                          }}
+                          style={{ flex: 1 }}
+                        />
+                        <span style={{ fontSize: 12, opacity: 0.7 }}>
+                          {audioRef.current
+                            ? formatTime(audioRef.current.duration)
+                            : "0:00"}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -816,6 +1379,9 @@ export function Chat() {
           showPromptModal={() => setShowPromptModal(true)}
           scrollToBottom={scrollToBottom}
           hitBottom={hitBottom}
+          onUpdateInput={(text) => setUserInput(text)}
+          inputValue={userInput}
+          onTranslatingChange={(busy) => setIsTranslating(busy)}
         />
         <div className={styles["chat-input-panel-inner"]}>
           <textarea
@@ -841,6 +1407,7 @@ export function Chat() {
             onClick={onUserSubmit}
           />
         </div>
+        {isTranslating && <div className={styles["chat-input-progress"]} />}
       </div>
     </div>
   );

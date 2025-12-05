@@ -1,11 +1,10 @@
 import { SubmitKey } from "../store/app";
-import type { LocaleType } from "./index";
 
-const de: LocaleType = {
-  WIP: "In Bearbeitung...",
+const de = {
+  WIP: "In Arbeit...",
   Error: {
     Unauthorized:
-      "Unbefugter Zugriff, bitte geben Sie den Zugangscode auf der Einstellungsseite ein.",
+      "Nicht autorisiert, bitte gib den Zugangscode in den Einstellungen ein.",
   },
   ChatItem: {
     ChatItemCount: (count: number) => `${count} Nachrichten`,
@@ -13,63 +12,63 @@ const de: LocaleType = {
   Chat: {
     SubTitle: (count: number) => `${count} Nachrichten mit ChatGPT`,
     Actions: {
-      ChatList: "Zur Chat-Liste gehen",
-      CompressedHistory: "Komprimierter Gedächtnis-Prompt",
-      Export: "Alle Nachrichten als Markdown exportieren",
+      ChatList: "Zur Chatliste",
+      CompressedHistory: "Komprimierten Verlauf anzeigen",
+      Export: "Verlauf exportieren",
       Copy: "Kopieren",
-      Stop: "Stop",
-      Retry: "Wiederholen",
-      Delete: "Delete",
+      Stop: "Stopp",
+      Retry: "Erneut",
+      Delete: "Löschen",
     },
     Rename: "Chat umbenennen",
-    Typing: "Tippen...",
+    Typing: "Tippt…",
     Input: (submitKey: string) => {
-      var inputHints = `${submitKey} um zu Senden`;
+      var inputHints = `${submitKey} zum Senden`;
       if (submitKey === String(SubmitKey.Enter)) {
-        inputHints += ", Umschalt + Eingabe für Zeilenumbruch";
+        inputHints += ", Shift + Enter für Zeilenumbruch";
       }
-      return inputHints + ", / zum Durchsuchen von Prompts";
+      return inputHints + ", / für Autovervollständigung";
     },
     Send: "Senden",
   },
   Export: {
-    Title: "Alle Nachrichten",
+    Title: "Chatverlauf exportieren",
     Copy: "Alles kopieren",
-    Download: "Herunterladen",
-    MessageFromYou: "Deine Nachricht",
+    Download: "Datei herunterladen",
+    MessageFromYou: "Nachricht von dir",
     MessageFromChatGPT: "Nachricht von ChatGPT",
   },
   Memory: {
-    Title: "Gedächtnis-Prompt",
-    EmptyContent: "Noch nichts.",
-    Send: "Gedächtnis senden",
-    Copy: "Gedächtnis kopieren",
-    Reset: "Sitzung zurücksetzen",
+    Title: "Verlaufszusammenfassung",
+    EmptyContent: "Noch keine Zusammenfassung",
+    Send: "Zusammenfassung senden",
+    Copy: "Zusammenfassung kopieren",
+    Reset: "Chat zurücksetzen",
     ResetConfirm:
-      "Das Zurücksetzen löscht den aktuellen Gesprächsverlauf und das Langzeit-Gedächtnis. Möchten Sie wirklich zurücksetzen?",
+      "Zurücksetzen löscht den Verlauf und die Zusammenfassung. Sicher?",
   },
   Home: {
     NewChat: "Neuer Chat",
-    DeleteChat: "Bestätigen Sie, um das ausgewählte Gespräch zu löschen?",
+    DeleteChat: "Ausgewählten Chat löschen?",
     DeleteToast: "Chat gelöscht",
-    Revert: "Zurücksetzen",
+    Revert: "Rückgängig",
   },
   Settings: {
     Title: "Einstellungen",
-    SubTitle: "Alle Einstellungen",
+    SubTitle: "Optionen",
     Actions: {
       ClearAll: "Alle Daten löschen",
-      ResetAll: "Alle Einstellungen zurücksetzen",
+      ResetAll: "Alle Optionen zurücksetzen",
       Close: "Schließen",
       ConfirmResetAll: {
-        Confirm: "Möchten Sie wirklich alle Konfigurationen zurücksetzen?",
+        Confirm: "Alle Einstellungen wirklich zurücksetzen?",
       },
       ConfirmClearAll: {
-        Confirm: "Möchten Sie wirklich alle Chats zurücksetzen?",
+        Confirm: "Wirklich alle Chats löschen?",
       },
     },
     Lang: {
-      Name: "Language", // ATTENTION: if you wanna add a new translation, please do not translate this value, leave it as `Language`
+      Name: "Language",
       Options: {
         cn: "简体中文",
         en: "English",
@@ -84,106 +83,112 @@ const de: LocaleType = {
     Avatar: "Avatar",
     FontSize: {
       Title: "Schriftgröße",
-      SubTitle: "Schriftgröße des Chat-Inhalts anpassen",
+      SubTitle: "Schriftgröße der Chat-Inhalte anpassen",
     },
+
     Update: {
       Version: (x: string) => `Version: ${x}`,
-      IsLatest: "Neueste Version",
-      CheckUpdate: "Update prüfen",
-      IsChecking: "Update wird geprüft...",
+      IsLatest: "Aktuell",
+      CheckUpdate: "Updates prüfen",
+      IsChecking: "Suche nach Updates...",
       FoundUpdate: (x: string) => `Neue Version gefunden: ${x}`,
       GoToUpdate: "Aktualisieren",
     },
-    SendKey: "Senden-Taste",
-    Theme: "Erscheinungsbild",
-    TightBorder: "Enger Rahmen",
-    SendPreviewBubble: "Vorschau-Bubble senden",
+    SendKey: "Sendetaste",
+    Theme: "Theme",
+    TightBorder: "Schmale Ränder",
+    SendPreviewBubble: "Sendevorschau",
     Prompt: {
       Disable: {
         Title: "Autovervollständigung deaktivieren",
-        SubTitle: "Autovervollständigung mit / starten",
+        SubTitle: "Mit / am Anfang Autovervollständigung auslösen",
       },
-      List: "Prompt-Liste",
+      List: "Promptliste",
       ListCount: (builtin: number, custom: number) =>
         `${builtin} integriert, ${custom} benutzerdefiniert`,
       Edit: "Bearbeiten",
       Modal: {
-        Title: "Prompt List",
-        Add: "Add One",
-        Search: "Search Prompts",
+        Title: "Promptliste",
+        Add: "Hinzufügen",
+        Search: "Prompts suchen",
       },
     },
     HistoryCount: {
-      Title: "Anzahl der angehängten Nachrichten",
-      SubTitle: "Anzahl der pro Anfrage angehängten gesendeten Nachrichten",
+      Title: "Anzahl Verlaufsmeldungen",
+      SubTitle: "Anzahl angehängter Verlaufsmeldungen je Anfrage",
     },
     CompressThreshold: {
-      Title: "Schwellenwert für Verlaufskomprimierung",
+      Title: "Komprimierungsschwelle",
       SubTitle:
-        "Komprimierung, wenn die Länge der unkomprimierten Nachrichten den Wert überschreitet",
+        "Komprimierung erfolgt, wenn unkomprimierter Verlauf die Schwelle überschreitet",
     },
     Token: {
-      Title: "API-Schlüssel",
-      SubTitle:
-        "Verwenden Sie Ihren Schlüssel, um das Zugangscode-Limit zu ignorieren",
-      Placeholder: "OpenAI API-Schlüssel",
+      Title: "API Key",
+      SubTitle: "Eigenen Schlüssel verwenden, um Zugangscode zu umgehen",
+      Placeholder: "OpenAI API Key",
+    },
+    Endpoint: {
+      Title: "API-Basis-URL",
+      SubTitle: "Proxy oder eigenen Modellanbieter verwenden",
+      Placeholder: "z. B. https://api.openai.com",
+    },
+    HealthCheck: {
+      Title: "Systemcheck",
+      Check: "Prüfen",
+      Checking: "Prüfe…",
+      Ok: "Dienst OK",
+      Fail: (msg: string) => `Fehler: ${msg}`,
     },
     Usage: {
       Title: "Kontostand",
       SubTitle(used: any, total: any) {
-        return `Diesen Monat ausgegeben $${used}, Abonnement $${total}`;
+        return `Diesen Monat genutzt $${used}, Abo gesamt $${total}`;
       },
-      IsChecking: "Wird überprüft...",
+      IsChecking: "Prüfe…",
       Check: "Erneut prüfen",
-      NoAccess: "API-Schlüssel eingeben, um den Kontostand zu überprüfen",
+      NoAccess: "API Key oder Zugangscode eingeben, um Kontostand zu sehen",
     },
     AccessCode: {
       Title: "Zugangscode",
-      SubTitle: "Zugangskontrolle aktiviert",
-      Placeholder: "Zugangscode erforderlich",
+      SubTitle: "Zugriffskontrolle aktiviert",
+      Placeholder: "Zugangscode eingeben",
     },
-    Model: "Modell",
+    Model: "Modell (model)",
     Temperature: {
-      Title: "Temperature", //Temperatur
-      SubTitle: "Ein größerer Wert führt zu zufälligeren Antworten",
+      Title: "Temperatur",
+      SubTitle: "Höhere Werte machen die Ausgabe zufälliger",
     },
     MaxTokens: {
-      Title: "Max Tokens", //Maximale Token
-      SubTitle: "Maximale Anzahl der Anfrage- plus Antwort-Token",
+      Title: "Max Tokens",
+      SubTitle: "Maximale Token pro Antwort",
     },
     PresencePenlty: {
-      Title: "Presence Penalty", //Anwesenheitsstrafe
-      SubTitle:
-        "Ein größerer Wert erhöht die Wahrscheinlichkeit, dass über neue Themen gesprochen wird",
+      Title: "Presence-Penalty",
+      SubTitle: "Höhere Werte erhöhen neue Themen",
     },
   },
   Store: {
-    DefaultTopic: "Neues Gespräch",
-    BotHello: "Hallo! Wie kann ich Ihnen heute helfen?",
-    Error:
-      "Etwas ist schief gelaufen, bitte versuchen Sie es später noch einmal.",
+    DefaultTopic: "Neuer Chat",
+    BotHello: "Wie kann ich heute helfen?",
+    Error: "Etwas ist schiefgelaufen, bitte später erneut versuchen.",
     Prompt: {
       History: (content: string) =>
-        "Dies ist eine Zusammenfassung des Chatverlaufs zwischen dem KI und dem Benutzer als Rückblick: " +
-        content,
-      Topic:
-        "Bitte erstellen Sie einen vier- bis fünfwörtigen Titel, der unser Gespräch zusammenfasst, ohne Einleitung, Zeichensetzung, Anführungszeichen, Punkte, Symbole oder zusätzlichen Text. Entfernen Sie Anführungszeichen.",
-      Summarize:
-        "Fassen Sie unsere Diskussion kurz in 200 Wörtern oder weniger zusammen, um sie als Pronpt für zukünftige Gespräche zu verwenden.",
+        "Zusammenfassung des Chatverlaufs zwischen KI und Nutzer:" + content,
+      Topic: "Kurzen Titel mit 4–5 Wörtern, ohne Satzzeichen",
+      Summarize: "Konversation in max. 200 Zeichen zusammenfassen",
     },
-    ConfirmClearAll:
-      "Bestätigen Sie, um alle Chat- und Einstellungsdaten zu löschen?",
+    ConfirmClearAll: "Alle Chats und Einstellungen löschen?",
   },
   Copy: {
-    Success: "In die Zwischenablage kopiert",
-    Failed:
-      "Kopieren fehlgeschlagen, bitte geben Sie die Berechtigung zum Zugriff auf die Zwischenablage frei",
+    Success: "In Zwischenablage kopiert",
+    Failed: "Kopieren fehlgeschlagen, erteile Zwischenablage-Berechtigung",
   },
   Context: {
-    Toast: (x: any) => `Mit ${x} Kontext-Prompts`,
-    Edit: "Kontext- und Gedächtnis-Prompts",
-    Add: "Hinzufügen",
+    Toast: (x: any) => `${x} Kontext-Prompts gesetzt`,
+    Edit: "Kontext und Erinnerung",
+    Add: "Prompt hinzufügen",
   },
 };
 
+export type LocaleType = typeof de;
 export default de;

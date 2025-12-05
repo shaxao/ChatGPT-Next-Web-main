@@ -1,70 +1,68 @@
 import { SubmitKey } from "../store/app";
 
 const jp = {
-  WIP: "この機能は開発中です……",
+  WIP: "近日公開...",
   Error: {
-    Unauthorized:
-      "現在は未承認状態です。左下の設定ボタンをクリックし、アクセスパスワードを入力してください。",
+    Unauthorized: "未認証です。設定ページでアクセスコードを入力してください。",
   },
   ChatItem: {
-    ChatItemCount: (count: number) => `${count} 通のチャット`,
+    ChatItemCount: (count: number) => `${count} 件のメッセージ`,
   },
   Chat: {
-    SubTitle: (count: number) => `ChatGPTとの ${count} 通のチャット`,
+    SubTitle: (count: number) => `ChatGPT との ${count} 件の会話`,
     Actions: {
-      ChatList: "メッセージリストを表示",
-      CompressedHistory: "圧縮された履歴プロンプトを表示",
-      Export: "チャット履歴をエクスポート",
+      ChatList: "チャット一覧へ",
+      CompressedHistory: "圧縮履歴を表示",
+      Export: "履歴をエクスポート",
       Copy: "コピー",
       Stop: "停止",
-      Retry: "リトライ",
-      Delete: "Delete",
+      Retry: "再試行",
+      Delete: "削除",
     },
-    Rename: "チャットの名前を変更",
+    Rename: "チャットの名前変更",
     Typing: "入力中…",
     Input: (submitKey: string) => {
       var inputHints = `${submitKey} で送信`;
       if (submitKey === String(SubmitKey.Enter)) {
-        inputHints += "，Shift + Enter で改行";
+        inputHints += "、Shift + Enter で改行";
       }
-      return inputHints + "，/ で自動補完をトリガー";
+      return inputHints + "、/ で補完";
     },
     Send: "送信",
   },
   Export: {
-    Title: "チャット履歴をMarkdown形式でエクスポート",
+    Title: "チャット履歴をエクスポート",
     Copy: "すべてコピー",
     Download: "ファイルをダウンロード",
     MessageFromYou: "あなたからのメッセージ",
-    MessageFromChatGPT: "ChatGPTからのメッセージ",
+    MessageFromChatGPT: "ChatGPT からのメッセージ",
   },
   Memory: {
-    Title: "履歴メモリ",
-    EmptyContent: "まだ記憶されていません",
-    Send: "メモリを送信",
-    Copy: "メモリをコピー",
+    Title: "履歴の要約",
+    EmptyContent: "要約なし",
+    Send: "要約を送信",
+    Copy: "要約をコピー",
     Reset: "チャットをリセット",
-    ResetConfirm:
-      "リセット後、現在のチャット履歴と過去のメモリがクリアされます。リセットしてもよろしいですか？",
+    ResetConfirm: "リセットすると履歴と要約が消えます。続行しますか？",
   },
   Home: {
     NewChat: "新しいチャット",
-    DeleteChat: "選択したチャットを削除してもよろしいですか？",
-    DeleteToast: "チャットが削除されました",
+    DeleteChat: "選択したチャットを削除しますか？",
+    DeleteToast: "チャットを削除しました",
     Revert: "元に戻す",
   },
   Settings: {
     Title: "設定",
-    SubTitle: "設定オプション",
+    SubTitle: "オプション",
     Actions: {
-      ClearAll: "すべてのデータをクリア",
-      ResetAll: "すべてのオプションをリセット",
+      ClearAll: "すべてのデータを削除",
+      ResetAll: "すべての設定をリセット",
       Close: "閉じる",
       ConfirmResetAll: {
-        Confirm: "すべての設定をリセットしてもよろしいですか？",
+        Confirm: "すべての設定を本当にリセットしますか？",
       },
       ConfirmClearAll: {
-        Confirm: "すべてのチャットをリセットしてもよろしいですか？",
+        Confirm: "すべてのチャットを本当に削除しますか？",
       },
     },
     Lang: {
@@ -83,105 +81,110 @@ const jp = {
     Avatar: "アバター",
     FontSize: {
       Title: "フォントサイズ",
-      SubTitle: "チャット内容のフォントサイズ",
+      SubTitle: "チャットコンテンツのフォントサイズを調整",
     },
 
     Update: {
-      Version: (x: string) => `現在のバージョン：${x}`,
-      IsLatest: "最新バージョンです",
+      Version: (x: string) => `バージョン: ${x}`,
+      IsLatest: "最新",
       CheckUpdate: "アップデートを確認",
-      IsChecking: "アップデートを確認しています...",
-      FoundUpdate: (x: string) => `新しいバージョンが見つかりました：${x}`,
-      GoToUpdate: "更新する",
+      IsChecking: "確認中...",
+      FoundUpdate: (x: string) => `新しいバージョンがあります: ${x}`,
+      GoToUpdate: "アップデート",
     },
     SendKey: "送信キー",
     Theme: "テーマ",
-    TightBorder: "ボーダーレスモード",
-    SendPreviewBubble: "プレビューバブルの送信",
+    TightBorder: "狭いボーダー",
+    SendPreviewBubble: "送信プレビュー",
     Prompt: {
       Disable: {
-        Title: "プロンプトの自動補完を無効にする",
-        SubTitle:
-          "入力フィールドの先頭に / を入力すると、自動補完がトリガーされます。",
+        Title: "スマート補完を無効化",
+        SubTitle: "入力が '/' で始まると補完が起動",
       },
-      List: "カスタムプロンプトリスト",
+      List: "プロンプト一覧",
       ListCount: (builtin: number, custom: number) =>
-        `組み込み ${builtin} 件、ユーザー定義 ${custom} 件`,
+        `${builtin} 内蔵、${custom} カスタム`,
       Edit: "編集",
       Modal: {
-        Title: "プロンプトリスト",
-        Add: "新規追加",
-        Search: "プロンプトワード検索",
+        Title: "プロンプト一覧",
+        Add: "追加",
+        Search: "プロンプト検索",
       },
     },
     HistoryCount: {
-      Title: "履歴メッセージ数を添付",
-      SubTitle: "リクエストごとに添付する履歴メッセージ数",
+      Title: "履歴メッセージ数",
+      SubTitle: "各リクエストに添付される履歴メッセージ数",
     },
     CompressThreshold: {
-      Title: "履歴メッセージの長さ圧縮しきい値",
-      SubTitle:
-        "圧縮されていない履歴メッセージがこの値を超えた場合、圧縮が行われます。",
+      Title: "圧縮しきい値",
+      SubTitle: "未圧縮の履歴メッセージがしきい値を超えると圧縮されます",
     },
     Token: {
-      Title: "APIキー",
-      SubTitle: "自分のキーを使用してパスワードアクセス制限を迂回する",
-      Placeholder: "OpenAI APIキー",
+      Title: "API Key",
+      SubTitle: "アクセスコード制限を無視するには自身のキーを使用",
+      Placeholder: "OpenAI API Key",
+    },
+    Endpoint: {
+      Title: "API ベース URL",
+      SubTitle: "プロキシやカスタムモデルプロバイダを利用",
+      Placeholder: "例: https://api.openai.com",
+    },
+    HealthCheck: {
+      Title: "ヘルスチェック",
+      Check: "チェック",
+      Checking: "チェック中…",
+      Ok: "サービス正常",
+      Fail: (msg: string) => `失敗: ${msg}`,
     },
     Usage: {
-      Title: "残高照会",
+      Title: "残高",
       SubTitle(used: any, total: any) {
-        return `今月は $${used} を使用しました。総額は $${total} です。`;
+        return `今月の使用 $${used}, サブスクリプション合計 $${total}`;
       },
-      IsChecking: "確認中...",
+      IsChecking: "確認中…",
       Check: "再確認",
-      NoAccess: "APIキーまたはアクセスパスワードを入力して残高を表示",
+      NoAccess: "残高確認には API Key またはアクセスコードが必要",
     },
     AccessCode: {
-      Title: "アクセスパスワード",
-      SubTitle: "暗号化アクセスが有効になっています",
-      Placeholder: "アクセスパスワードを入力してください",
+      Title: "アクセスコード",
+      SubTitle: "アクセス制御が有効です",
+      Placeholder: "アクセスコードを入力",
     },
     Model: "モデル (model)",
     Temperature: {
-      Title: "ランダム性 (temperature)",
-      SubTitle:
-        "値が大きいほど、回答がランダムになります。1以上の値には文字化けが含まれる可能性があります。",
+      Title: "温度",
+      SubTitle: "値が高いほど出力はランダムになります",
     },
     MaxTokens: {
-      Title: "シングルレスポンス制限 (max_tokens)",
-      SubTitle: "1回のインタラクションで使用される最大トークン数",
+      Title: "最大トークン",
+      SubTitle: "応答あたりの最大トークン数",
     },
     PresencePenlty: {
-      Title: "トピックの新鮮度 (presence_penalty)",
-      SubTitle: "値が大きいほど、新しいトピックへの展開が可能になります。",
+      Title: "Presence Penalty",
+      SubTitle: "値が高いほど新しいトピックに言及しやすくなります",
     },
   },
   Store: {
     DefaultTopic: "新しいチャット",
-    BotHello: "何かお手伝いできることはありますか",
-    Error: "エラーが発生しました。しばらくしてからやり直してください。",
+    BotHello: "今日は何をお手伝いできますか？",
+    Error: "問題が発生しました。後でもう一度お試しください。",
     Prompt: {
-      History: (content: string) =>
-        "これは、AI とユーザの過去のチャットを要約した前提となるストーリーです：" +
-        content,
-      Topic:
-        "4～5文字でこの文章の簡潔な主題を返してください。説明、句読点、感嘆詞、余分なテキストは無しで。もし主題がない場合は、「おしゃべり」を返してください",
-      Summarize:
-        "あなたとユーザの会話を簡潔にまとめて、後続のコンテキストプロンプトとして使ってください。200字以内に抑えてください。",
+      History: (content: string) => "AI とユーザーの履歴要約:" + content,
+      Topic: "4〜5語の短いタイトルを提示。句読点なし",
+      Summarize: "会話を 200 文字以内で要約してください",
     },
-    ConfirmClearAll:
-      "すべてのチャット、設定データをクリアしてもよろしいですか？",
+    ConfirmClearAll: "すべてのチャットと設定を削除しますか？",
   },
   Copy: {
-    Success: "クリップボードに書き込みました",
-    Failed: "コピーに失敗しました。クリップボード許可を与えてください。",
+    Success: "クリップボードにコピーしました",
+    Failed: "コピーに失敗しました。権限を許可してください",
   },
   Context: {
-    Toast: (x: any) => `前置コンテキストが ${x} 件設定されました`,
-    Edit: "前置コンテキストと履歴メモリ",
-    Add: "新規追加",
+    Toast: (x: any) => `${x} 件のコンテキストプロンプトを設定しました`,
+    Edit: "コンテキストとメモリ",
+    Add: "プロンプトを追加",
   },
 };
 
+export type LocaleType = typeof jp;
 export default jp;

@@ -11,6 +11,7 @@ import { isMobileScreen, trimTopic } from "../utils";
 
 import Locale from "../locales";
 import { showToast } from "../components/ui-lib";
+import { useAccessStore } from "./access";
 
 export type Message = ChatCompletionResponseMessage & {
   date: string;
@@ -99,7 +100,7 @@ export const ALL_MODELS = [
   },
 ] as const;
 
-export type ModelType = (typeof ALL_MODELS)[number]["name"];
+export type ModelType = (typeof ALL_MODELS)[number]["name"] | string;
 
 export function limitNumber(
   x: number,
@@ -115,9 +116,13 @@ export function limitNumber(
 }
 
 export function limitModel(name: string) {
+  const dynamic = useAccessStore.getState().models ?? [];
+  if (dynamic.length > 0) {
+    return dynamic.includes(name) ? name : dynamic[0];
+  }
   return ALL_MODELS.some((m) => m.name === name && m.available)
     ? name
-    : ALL_MODELS[4].name;
+    : ALL_MODELS.find((m) => m.available)?.name ?? "gpt-3.5-turbo";
 }
 
 export const ModalConfigValidator = {
@@ -552,7 +557,9 @@ export const useChatStore = create<ChatStore>()(
 
         const historyMsgLength = countMessages(toBeSummarizedMsgs);
 
-        if (historyMsgLength > get().config?.modelConfig?.max_tokens ?? 4000) {
+        if (
+          historyMsgLength > (get().config?.modelConfig?.max_tokens ?? 4000)
+        ) {
           const n = toBeSummarizedMsgs.length;
           toBeSummarizedMsgs = toBeSummarizedMsgs.slice(
             Math.max(0, n - config.historyMessageCount),
