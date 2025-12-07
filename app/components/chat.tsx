@@ -68,6 +68,7 @@ import chatStyle from "./chat.module.scss";
 import { Input, Modal, showModal, showToast } from "./ui-lib";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../constant";
+import { ModelSelectionModal } from "./model-selection";
 
 const Markdown = dynamic(
   async () => memo((await import("./markdown")).Markdown),
@@ -381,6 +382,7 @@ export function ChatActions(props: {
   const config = useChatStore((state) => state.config);
   const updateConfig = useChatStore((state) => state.updateConfig);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [showModelSelection, setShowModelSelection] = useState(false);
 
   // uploader
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -673,70 +675,28 @@ export function ChatActions(props: {
       {/* Model selection: show current model as text, click to open menu */}
       <div
         className={`${chatStyle["chat-input-action"]} clickable`}
-        onClick={() => {
-          const models =
-            accessStore.models && accessStore.models.length > 0
-              ? accessStore.models
-              : ALL_MODELS.filter((v) => v.available).map((v) => v.name);
-          const current = config.modelConfig.model;
-          showModal({
-            title: "选择模型",
-            children: (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  maxHeight: 240,
-                  overflow: "auto",
-                }}
-              >
-                {models.map((name) => {
-                  const selected = name === current;
-                  return (
-                    <div
-                      key={name}
-                      className="clickable"
-                      onClick={() => {
-                        updateConfig(
-                          (config) =>
-                            (config.modelConfig.model =
-                              ModalConfigValidator.model(name)),
-                        );
-                      }}
-                      style={{
-                        padding: "6px 8px",
-                        border: "1px solid var(--borderColor)",
-                        borderRadius: 6,
-                        backgroundColor: selected
-                          ? "var(--gray)"
-                          : "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      {selected ? <span>✓</span> : null}
-                      <span>{name}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ),
-            actions: [
-              <IconButton
-                key="refresh"
-                icon={<ResetIcon />}
-                text={loadingModels ? "获取中…" : "获取/刷新"}
-                onClick={fetchModels}
-              />,
-            ],
-          });
-        }}
+        onClick={() => setShowModelSelection(true)}
         title={`当前模型：${config.modelConfig.model}`}
       >
         <span style={{ fontSize: 12 }}>{config.modelConfig.model}</span>
       </div>
+      {showModelSelection && (
+        <ModelSelectionModal
+          models={
+            accessStore.models && accessStore.models.length > 0
+              ? accessStore.models
+              : ALL_MODELS.filter((v) => v.available).map((v) => v.name)
+          }
+          currentModel={config.modelConfig.model}
+          onSelect={(model) => {
+            updateConfig(
+              (config) =>
+                (config.modelConfig.model = ModalConfigValidator.model(model)),
+            );
+          }}
+          onClose={() => setShowModelSelection(false)}
+        />
+      )}
     </div>
   );
 }
