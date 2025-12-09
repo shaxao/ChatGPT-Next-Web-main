@@ -87,55 +87,55 @@ export const ACCESS_KEY = "access-control";
 
 let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 
+const initialAccessState = {
+  token: "",
+  accessCode: "",
+  endpoint: "",
+  models: [],
+  modelsEndpoint: undefined as string | undefined,
+  videoProvider: "chat" as const,
+  videoModel: "",
+  videoApiKey: "",
+  videoEndpoint: "",
+  videoModels: [],
+  videoModelsEndpoint: undefined as string | undefined,
+  videoCreatePath: "v1/video/tasks",
+  videoQueryPath: "v1/video/tasks/",
+  voiceProvider: "openai" as const,
+  voiceModel: "whisper-1",
+  voiceApiKey: "",
+  voiceEndpoint: "",
+  ttsProvider: "openai" as const,
+  ttsModel: "tts-1",
+  ttsApiKey: "",
+  ttsEndpoint: "",
+  ttsVoice: "alloy",
+  ttsFormat: "mp3" as const,
+  translationProvider: "openai" as const,
+  translationApiKey: "",
+  translationEndpoint: "",
+  translationTargetLang: "en",
+  needCode: true,
+};
+
 export const useAccessStore = create<AccessControlStore>()(
   persist(
     (set, get) => ({
-      token: "",
-      accessCode: "",
-      endpoint: "",
-      models: [],
-      modelsEndpoint: undefined,
-      // defaults for video
-      videoProvider: "chat",
-      videoModel: "",
-      videoApiKey: "",
-      videoEndpoint: "",
-      videoModels: [],
-      videoModelsEndpoint: undefined,
-      videoCreatePath: "v1/video/tasks",
-      videoQueryPath: "v1/video/tasks/",
-      // defaults for voice & translation
-      voiceProvider: "openai",
-      voiceModel: "whisper-1",
-      voiceApiKey: "",
-      voiceEndpoint: "",
-      // defaults for TTS
-      ttsProvider: "openai",
-      ttsModel: "tts-1",
-      ttsApiKey: "",
-      ttsEndpoint: "",
-      ttsVoice: "alloy",
-      ttsFormat: "mp3",
-      // defaults for translation
-      translationProvider: "openai",
-      translationApiKey: "",
-      translationEndpoint: "",
-      translationTargetLang: "en",
-      needCode: true,
+      ...initialAccessState,
       enabledAccessControl() {
         get().fetch();
 
         return get().needCode;
       },
       updateCode(code: string) {
-        set((state) => ({ accessCode: code }));
+        set(() => ({ accessCode: code }));
       },
       updateToken(token: string) {
-        set((state) => ({ token }));
+        set(() => ({ token }));
       },
       updateEndpoint(endpoint: string) {
         const prevSource = get().modelsEndpoint;
-        set((state) => ({ endpoint }));
+        set(() => ({ endpoint }));
         // clear cached models if endpoint changes
         if (prevSource && prevSource !== endpoint) {
           set(() => ({ models: [], modelsEndpoint: undefined }));
@@ -199,7 +199,7 @@ export const useAccessStore = create<AccessControlStore>()(
       },
 
       // voice updates
-      updateVoiceProvider(provider) {
+      updateVoiceProvider(provider: AccessControlStore["voiceProvider"]) {
         set(() => ({ voiceProvider: provider }));
       },
       updateVoiceModel(model: string) {
@@ -213,7 +213,7 @@ export const useAccessStore = create<AccessControlStore>()(
       },
 
       // TTS updates
-      updateTtsProvider(provider) {
+      updateTtsProvider(provider: AccessControlStore["ttsProvider"]) {
         set(() => ({ ttsProvider: provider }));
       },
       updateTtsModel(model: string) {
@@ -228,12 +228,14 @@ export const useAccessStore = create<AccessControlStore>()(
       updateTtsVoice(voice: string) {
         set(() => ({ ttsVoice: voice }));
       },
-      updateTtsFormat(fmt) {
+      updateTtsFormat(fmt: AccessControlStore["ttsFormat"]) {
         set(() => ({ ttsFormat: fmt }));
       },
 
       // translation updates
-      updateTranslationProvider(provider) {
+      updateTranslationProvider(
+        provider: AccessControlStore["translationProvider"],
+      ) {
         set(() => ({ translationProvider: provider }));
       },
       updateTranslationApiKey(key: string) {
@@ -247,7 +249,7 @@ export const useAccessStore = create<AccessControlStore>()(
       },
 
       // video updates
-      updateVideoProvider(provider) {
+      updateVideoProvider(provider: AccessControlStore["videoProvider"]) {
         set(() => ({ videoProvider: provider }));
       },
       updateVideoModel(model: string) {
@@ -269,6 +271,7 @@ export const useAccessStore = create<AccessControlStore>()(
     {
       name: ACCESS_KEY,
       version: 5,
+      migrate: (state: any) => ({ ...initialAccessState, ...(state || {}) }),
     },
   ),
 );

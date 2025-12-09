@@ -17,12 +17,7 @@ async function fetchCN() {
     return raw.map((v) => [v.act, v.prompt]);
   } catch (error) {
     console.error("[Fetch] failed to fetch cn prompts", error);
-    try {
-      const raw = await (await fetch(RAW_FILE_URL + RAW_CN_URL)).json();
-      return raw.map((v) => [v.act, v.prompt]);
-    } catch (_) {
-      return [];
-    }
+    return [];
   }
 }
 
@@ -36,15 +31,7 @@ async function fetchEN() {
       .map((v) => v.split('","').map((v) => v.replace('"', "")));
   } catch (error) {
     console.error("[Fetch] failed to fetch cn prompts", error);
-    try {
-      const raw = await (await fetch(RAW_FILE_URL + RAW_EN_URL)).text();
-      return raw
-        .split("\n")
-        .slice(1)
-        .map((v) => v.split('","').map((v) => v.replace('"', "")));
-    } catch (_) {
-      return [];
-    }
+    return [];
   }
 }
 

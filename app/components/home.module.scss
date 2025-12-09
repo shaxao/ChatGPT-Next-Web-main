@@ -22,6 +22,7 @@
 
 .container {
   @include container();
+  margin: 0 auto;
 }
 
 @media only screen and (min-width: 600px) {
@@ -37,6 +38,7 @@
 
     border-radius: 0;
     border: 0;
+    margin: 0 auto;
   }
 }
 
@@ -183,12 +185,12 @@
   cursor: pointer;
 }
 
-.chat-item:hover > .chat-item-delete {
+.chat-item:hover>.chat-item-delete {
   opacity: 0.5;
   right: 10px;
 }
 
-.chat-item:hover > .chat-item-delete:hover {
+.chat-item:hover>.chat-item-delete:hover {
   opacity: 1;
 }
 
@@ -209,10 +211,12 @@
 }
 
 .narrow-sidebar {
+
   .sidebar-title,
   .sidebar-sub-title {
     display: none;
   }
+
   .sidebar-logo {
     position: relative;
     display: flex;
@@ -250,7 +254,7 @@
     top: 15px;
   }
 
-  .chat-item:hover > .chat-item-delete {
+  .chat-item:hover>.chat-item-delete {
     opacity: 0.5;
     right: 5px;
   }
@@ -339,7 +343,7 @@
   }
 }
 
-.chat-message-user > .chat-message-container {
+.chat-message-user>.chat-message-container {
   align-items: flex-end;
 }
 
@@ -408,7 +412,7 @@
   }
 }
 
-.chat-message-user > .chat-message-container > .chat-message-item {
+.chat-message-user>.chat-message-container>.chat-message-item {
   background-color: var(--second);
 }
 
@@ -478,6 +482,7 @@
 
       @include single-line();
     }
+
     .hint-content {
       font-size: 12px;
 
@@ -494,6 +499,8 @@
 .chat-input-panel-inner {
   display: flex;
   flex: 1;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .chat-input {
@@ -505,7 +512,7 @@
   background-color: var(--white);
   color: var(--black);
   font-family: inherit;
-  padding: 10px 90px 10px 14px;
+  padding: 10px 14px;
   resize: none;
   outline: none;
 }
@@ -518,9 +525,17 @@
   background-color: var(--primary);
   color: white;
 
-  position: absolute;
-  right: 30px;
-  bottom: 32px;
+  position: static;
+  padding: 8px 16px !important;
+  min-height: 36px;
+  min-width: 80px;
+
+  .icon-button-text {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    font-weight: 600;
+  }
 }
 
 @media only screen and (max-width: 600px) {
@@ -538,6 +553,7 @@
   0% {
     background-position: 0% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
@@ -548,7 +564,7 @@
   width: 100%;
   border-radius: 2px;
   margin-top: 8px;
-  background: linear-gradient(90deg, var(--primary) 0%, rgba(0,0,0,0.08) 50%, var(--primary) 100%);
+  background: linear-gradient(90deg, var(--primary) 0%, rgba(0, 0, 0, 0.08) 50%, var(--primary) 100%);
   background-size: 200% 100%;
   animation: chat-linear-progress 1.2s linear infinite;
 }

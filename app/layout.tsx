@@ -3,6 +3,11 @@ import "./styles/globals.scss";
 import "./styles/markdown.scss";
 import "./styles/highlight.scss";
 import { getBuildConfig } from "./config/build";
+import dynamic from "next/dynamic";
+
+const Providers = dynamic(() => import("./components/providers"), {
+  ssr: false,
+});
 
 const buildConfig = getBuildConfig();
 
@@ -50,7 +55,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://raw.fgit.ml" />
         <script src="/serviceWorkerRegister.js" defer></script>
       </head>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

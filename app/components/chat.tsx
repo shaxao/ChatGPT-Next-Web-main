@@ -1,3 +1,18 @@
+import {
+  AutoComplete,
+  ActionIcon,
+  Modal as LobeModal,
+  Input as LobeInput,
+} from "@lobehub/ui";
+import OpenAI from "@lobehub/icons/es/OpenAI";
+import Anthropic from "@lobehub/icons/es/Anthropic";
+import Google from "@lobehub/icons/es/Google";
+import Meta from "@lobehub/icons/es/Meta";
+import Alibaba from "@lobehub/icons/es/Alibaba";
+import Baidu from "@lobehub/icons/es/Baidu";
+import Spark from "@lobehub/icons/es/Spark";
+import Zhipu from "@lobehub/icons/es/ChatGLM";
+import Ai21 from "@lobehub/icons/es/Ai21";
 import { useDebounce, useDebouncedCallback } from "use-debounce";
 import { memo, useState, useRef, useEffect, useLayoutEffect } from "react";
 
@@ -68,7 +83,6 @@ import chatStyle from "./chat.module.scss";
 import { Input, Modal, showModal, showToast } from "./ui-lib";
 import { useNavigate } from "react-router-dom";
 import { Path } from "../constant";
-import { ModelSelectionModal } from "./model-selection";
 
 const Markdown = dynamic(
   async () => memo((await import("./markdown")).Markdown),
@@ -109,8 +123,10 @@ function exportMessages(messages: Message[], topic: string) {
     messages
       .map((m) => {
         return m.role === "user"
-          ? `## ${Locale.Export.MessageFromYou}:\n${m.content}`
-          : `## ${Locale.Export.MessageFromChatGPT}:\n${m.content.trim()}`;
+          ? `## ${Locale.Export.MessageFromYou}:\n${m.content || ""}`
+          : `## ${Locale.Export.MessageFromChatGPT}:\n${(
+              m.content || ""
+            ).trim()}`;
       })
       .join("\n\n");
   const filename = `${topic}.md`;
@@ -323,28 +339,6 @@ function useSubmitHandler() {
   };
 }
 
-export function PromptHints(props: {
-  prompts: Prompt[];
-  onPromptSelect: (prompt: Prompt) => void;
-}) {
-  if (props.prompts.length === 0) return null;
-
-  return (
-    <div className={styles["prompt-hints"]}>
-      {props.prompts.map((prompt, i) => (
-        <div
-          className={styles["prompt-hint"]}
-          key={prompt.title + i.toString()}
-          onClick={() => props.onPromptSelect(prompt)}
-        >
-          <div className={styles["hint-title"]}>{prompt.title}</div>
-          <div className={styles["hint-content"]}>{prompt.content}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function useScrollToBottom() {
   // for auto-scroll
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -369,6 +363,20 @@ function useScrollToBottom() {
   };
 }
 
+function getModelIcon(modelName: string) {
+  const name = modelName.toLowerCase();
+  if (name.includes("gpt")) return <OpenAI.Avatar size={18} />;
+  if (name.includes("claude")) return <Anthropic.Avatar size={18} />;
+  if (name.includes("gemini")) return <Google.Avatar size={18} />;
+  if (name.includes("llama")) return <Meta.Avatar size={18} />;
+  if (name.includes("qwen")) return <Alibaba.Avatar size={18} />;
+  if (name.includes("ernie")) return <Baidu.Avatar size={18} />;
+  if (name.includes("spark")) return <Spark.Avatar size={18} />;
+  if (name.includes("chatglm")) return <Zhipu.Avatar size={18} />;
+  if (name.includes("ai21")) return <Ai21.Avatar size={18} />;
+  return <BotIcon className="user-avatar" width={14} height={14} />;
+}
+
 export function ChatActions(props: {
   showPromptModal: () => void;
   scrollToBottom: () => void;
@@ -383,6 +391,7 @@ export function ChatActions(props: {
   const updateConfig = useChatStore((state) => state.updateConfig);
   const [loadingModels, setLoadingModels] = useState(false);
   const [showModelSelection, setShowModelSelection] = useState(false);
+  const [modelSearchKeyword, setModelSearchKeyword] = useState("");
 
   // uploader
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -480,6 +489,7 @@ export function ChatActions(props: {
     { code: "ru", label: "俄语" },
   ];
   const [translating, setTranslating] = useState(false);
+  const [showLangMenu, setShowLangMenu] = useState(false);
   async function doTranslate() {
     const text = props.inputValue || "";
     if (!text.trim()) {
@@ -504,30 +514,7 @@ export function ChatActions(props: {
     }
   }
   function openTranslateMenu() {
-    showModal({
-      title: "选择目标语言",
-      children: (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {LANG_OPTIONS.map((l) => (
-            <div
-              key={l.code}
-              className="clickable"
-              onClick={() => {
-                accessStore.updateTranslationTargetLang(l.code);
-                doTranslate();
-              }}
-              style={{
-                padding: "6px 10px",
-                border: "1px solid var(--borderColor)",
-                borderRadius: 6,
-              }}
-            >
-              {l.label}
-            </div>
-          ))}
-        </div>
-      ),
-    });
+    setShowLangMenu((v) => !v);
   }
 
   // switch themes
@@ -658,17 +645,30 @@ export function ChatActions(props: {
       </div>
 
       {/* Translate input */}
-      <div
-        className={`${chatStyle["chat-input-action"]} clickable`}
-        onClick={translating ? undefined : openTranslateMenu}
-        title={translating ? "正在翻译…" : "翻译输入框内容"}
-        aria-busy={translating}
-        style={{ pointerEvents: translating ? "none" : undefined }}
-      >
-        {translating ? (
-          <LoadingIcon />
-        ) : (
+      <div className={chatStyle["translate-wrapper"]}>
+        <div
+          className={`${chatStyle["chat-input-action"]} clickable`}
+          onClick={translating ? undefined : openTranslateMenu}
+          title={translating ? "正在翻译…" : "翻译输入框内容"}
+        >
           <TranslateIcon width={16} height={16} />
+        </div>
+        {showLangMenu && (
+          <div className={chatStyle["lang-menu"]}>
+            {LANG_OPTIONS.map((l) => (
+              <div
+                key={l.code}
+                className={chatStyle["lang-option"]}
+                onClick={() => {
+                  accessStore.updateTranslationTargetLang(l.code);
+                  setShowLangMenu(false);
+                  doTranslate();
+                }}
+              >
+                {l.label}
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -678,25 +678,68 @@ export function ChatActions(props: {
         onClick={() => setShowModelSelection(true)}
         title={`当前模型：${config.modelConfig.model}`}
       >
-        <span style={{ fontSize: 12 }}>{config.modelConfig.model}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {getModelIcon(config.modelConfig.model)}
+          <span style={{ fontSize: 12 }}>{config.modelConfig.model}</span>
+        </div>
       </div>
-      {showModelSelection && (
-        <ModelSelectionModal
-          models={
-            accessStore.models && accessStore.models.length > 0
+      <LobeModal
+        title="选择模型"
+        open={showModelSelection}
+        onCancel={() => setShowModelSelection(false)}
+        footer={null}
+        style={{ width: "fit-content", maxWidth: "min(640px, 90vw)" }}
+      >
+        <div className={chatStyle["model-selector-modal"]}>
+          <LobeInput
+            placeholder="搜索模型..."
+            value={modelSearchKeyword}
+            onChange={(e) => setModelSearchKeyword(e.target.value)}
+            style={{ marginBottom: 10 }}
+          />
+          <div className={chatStyle["model-list"]}>
+            {(accessStore.models && accessStore.models.length > 0
               ? accessStore.models
               : ALL_MODELS.filter((v) => v.available).map((v) => v.name)
-          }
-          currentModel={config.modelConfig.model}
-          onSelect={(model) => {
-            updateConfig(
-              (config) =>
-                (config.modelConfig.model = ModalConfigValidator.model(model)),
-            );
-          }}
-          onClose={() => setShowModelSelection(false)}
-        />
-      )}
+            )
+              .filter((name) =>
+                name.toLowerCase().includes(modelSearchKeyword.toLowerCase()),
+              )
+              .map((name) => {
+                const selected = name === config.modelConfig.model;
+                return (
+                  <div
+                    key={name}
+                    className={`clickable ${chatStyle["model-option"]} ${
+                      selected ? chatStyle["model-option-selected"] : ""
+                    }`}
+                    onClick={() => {
+                      updateConfig(
+                        (config) =>
+                          (config.modelConfig.model =
+                            ModalConfigValidator.model(name)),
+                      );
+                      setShowModelSelection(false);
+                    }}
+                  >
+                    {getModelIcon(name)}
+                    <span style={{ flex: 1 }}>{name}</span>
+                    {selected ? <span>✓</span> : null}
+                  </div>
+                );
+              })}
+          </div>
+          <div style={{ marginTop: 10, textAlign: "right" }}>
+            <IconButton
+              key="refresh"
+              icon={<ResetIcon />}
+              text={loadingModels ? "获取中…" : "获取/刷新"}
+              onClick={fetchModels}
+              bordered
+            />
+          </div>
+        </div>
+      </LobeModal>
     </div>
   );
 }
@@ -833,11 +876,11 @@ export function Chat() {
   const onRightClick = (e: any, message: Message) => {
     // auto fill user input
     if (message.role === "user") {
-      setUserInput(message.content);
+      setUserInput(message.content || "");
     }
 
     // copy to clipboard
-    if (selectOrCopy(e.currentTarget, message.content)) {
+    if (selectOrCopy(e.currentTarget, message.content || "")) {
       e.preventDefault();
     }
   };
@@ -878,7 +921,7 @@ export function Chat() {
     setIsLoading(true);
     const content = session.messages[userIndex].content;
     deleteMessage(userIndex);
-    chatStore.onUserInput(content).then(() => setIsLoading(false));
+    chatStore.onUserInput(content || "").then(() => setIsLoading(false));
     inputRef.current?.focus();
   };
 
@@ -1178,8 +1221,7 @@ export function Chat() {
           const isUser = message.role === "user";
           const showActions =
             !isUser &&
-            i > 0 &&
-            !(message.preview || message.content.length === 0);
+            !(message.preview || (message.content?.length ?? 0) === 0);
           const showTyping = message.preview || message.streaming;
           const msgId = message.id ?? i;
 
@@ -1226,7 +1268,10 @@ export function Chat() {
                           <div
                             className={styles["chat-message-top-action"]}
                             onClick={() =>
-                              openTranslateMessageMenu(msgId, message.content)
+                              openTranslateMessageMenu(
+                                msgId,
+                                message.content || "",
+                              )
                             }
                             aria-busy={translatingMessageId === msgId}
                           >
@@ -1242,7 +1287,7 @@ export function Chat() {
                               if (speaking.id === msgId) {
                                 stopSpeaking();
                               } else {
-                                doSpeakMessage(msgId, message.content);
+                                doSpeakMessage(msgId, message.content || "");
                               }
                             }}
                             aria-busy={
@@ -1262,22 +1307,23 @@ export function Chat() {
 
                       <div
                         className={styles["chat-message-top-action"]}
-                        onClick={() => copyToClipboard(message.content)}
+                        onClick={() => copyToClipboard(message.content || "")}
                       >
                         {Locale.Chat.Actions.Copy}
                       </div>
                     </div>
                   )}
                   <Markdown
-                    content={message.content}
+                    content={message.content || ""}
                     loading={
-                      (message.preview || message.content.length === 0) &&
+                      (message.preview ||
+                        (message.content || "").length === 0) &&
                       !isUser
                     }
                     onContextMenu={(e) => onRightClick(e, message)}
                     onDoubleClickCapture={() => {
                       if (!isMobileScreen) return;
-                      setUserInput(message.content);
+                      setUserInput(message.content || "");
                     }}
                     fontSize={fontSize}
                     parentRef={scrollRef}
@@ -1333,8 +1379,6 @@ export function Chat() {
       </div>
 
       <div className={styles["chat-input-panel"]}>
-        <PromptHints prompts={promptHints} onPromptSelect={onPromptSelect} />
-
         <ChatActions
           showPromptModal={() => setShowPromptModal(true)}
           scrollToBottom={scrollToBottom}
@@ -1344,21 +1388,50 @@ export function Chat() {
           onTranslatingChange={(busy) => setIsTranslating(busy)}
         />
         <div className={styles["chat-input-panel-inner"]}>
-          <textarea
-            ref={inputRef}
-            className={styles["chat-input"]}
-            placeholder={Locale.Chat.Input(submitKey)}
-            onInput={(e) => onInput(e.currentTarget.value)}
+          <AutoComplete
             value={userInput}
-            onKeyDown={onInputKeyDown}
-            onFocus={() => setAutoScroll(true)}
-            onBlur={() => {
-              setAutoScroll(false);
-              setTimeout(() => setPromptHints([]), 500);
+            options={promptHints.map((prompt) => ({
+              value: prompt.content,
+              label: (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontWeight: "bold" }}>{prompt.title}</span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      opacity: 0.7,
+                    }}
+                  >
+                    {prompt.content}
+                  </span>
+                </div>
+              ),
+            }))}
+            onSelect={(value) => {
+              const prompt = promptHints.find((p) => p.content === value);
+              if (prompt) onPromptSelect(prompt);
             }}
-            autoFocus
-            rows={inputRows}
-          />
+            onSearch={onInput}
+            style={{ width: "100%" }}
+          >
+            <textarea
+              ref={inputRef}
+              className={styles["chat-input"]}
+              placeholder={Locale.Chat.Input(submitKey)}
+              onInput={(e) => onInput(e.currentTarget.value)}
+              value={userInput}
+              onKeyDown={onInputKeyDown}
+              onFocus={() => setAutoScroll(true)}
+              onBlur={() => {
+                setAutoScroll(false);
+                setTimeout(() => setPromptHints([]), 500);
+              }}
+              autoFocus
+              rows={inputRows}
+            />
+          </AutoComplete>
           <IconButton
             icon={<SendWhiteIcon />}
             text={Locale.Chat.Send}

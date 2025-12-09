@@ -6,6 +6,8 @@ import { getServerSideConfig } from "./config/server";
 
 const serverConfig = getServerSideConfig();
 
+export const dynamic = "force-dynamic";
+
 export default async function App() {
   return (
     <>

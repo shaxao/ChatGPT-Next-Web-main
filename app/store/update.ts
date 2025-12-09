@@ -18,18 +18,21 @@ export interface UpdateStore {
 
 export const UPDATE_KEY = "chat-update";
 
+const initialUpdateState = {
+  lastUpdate: 0,
+  remoteVersion: "",
+  lastUpdateUsage: 0,
+  version: "unknown",
+};
+
 function queryMeta(key: string, defaultValue?: string): string {
-  let ret: string;
-  if (document) {
+  if (typeof document !== "undefined") {
     const meta = document.head.querySelector(
       `meta[name='${key}']`,
     ) as HTMLMetaElement;
-    ret = meta?.content ?? "";
-  } else {
-    ret = defaultValue ?? "";
+    return meta?.content ?? "";
   }
-
-  return ret;
+  return defaultValue ?? "";
 }
 
 const ONE_MINUTE = 60 * 1000;
@@ -37,12 +40,7 @@ const ONE_MINUTE = 60 * 1000;
 export const useUpdateStore = create<UpdateStore>()(
   persist(
     (set, get) => ({
-      lastUpdate: 0,
-      remoteVersion: "",
-
-      lastUpdateUsage: 0,
-
-      version: "unknown",
+      ...initialUpdateState,
 
       async getLatestVersion(force = false) {
         set(() => ({ version: queryMeta("version") ?? "unknown" }));
@@ -86,6 +84,7 @@ export const useUpdateStore = create<UpdateStore>()(
     {
       name: UPDATE_KEY,
       version: 1,
+      migrate: (state: any) => ({ ...initialUpdateState, ...(state || {}) }),
     },
   ),
 );
